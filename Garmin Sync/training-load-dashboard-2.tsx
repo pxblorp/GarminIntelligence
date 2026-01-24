@@ -8,7 +8,7 @@ const TrainingLoadDashboard = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [activeChart, setActiveChart] = useState('training'); // 'training' or 'vitals'
-  const [backendUrl, setBackendUrl] = useState('http://localhost:5000');
+  const [backendUrl, setBackendUrl] = useState('http://garminintelligence-production.up.railway.app');
   const [showSettings, setShowSettings] = useState(false);
 
   // Load data from storage on mount
@@ -66,7 +66,7 @@ const TrainingLoadDashboard = () => {
   const fetchGarminData = async () => {
     try {
       // Change this URL to match your backend server
-      const BACKEND_URL = 'http://localhost:5000';
+      const BACKEND_URL = 'http://garminintelligence-production.up.railway.app';
       
       // Show loading state (you could add a loading spinner here)
       console.log('Syncing with Garmin...');
