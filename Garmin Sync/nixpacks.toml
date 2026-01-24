@@ -1,11 +1,30 @@
 [phases.setup]
-nixPkgs = ["python310", "gcc"]
+nixPkgs = ["python310", "python310Packages.pip", "python310Packages.virtualenv"]
 
 [phases.install]
-cmds = ["pip install -r requirements.txt"]
-
-[phases.build]
-cmds = []
+cmds = ["python -m pip install --upgrade pip", "python -m pip install -r requirements.txt"]
 
 [start]
-cmd = "gunicorn app:app --bind 0.0.0.0:$PORT"
+cmd = "python -m gunicorn app:app --bind 0.0.0.0:$PORT"
+```
+
+### Then:
+
+1. **Commit and push** to GitHub (or re-upload files)
+2. Railway will automatically redeploy
+
+---
+
+**Alternative: Delete nixpacks.toml and use this simpler approach**
+
+If that still doesn't work, try removing `nixpacks.toml` completely and instead:
+
+1. Keep just these files:
+   - `app.py`
+   - `requirements.txt`
+   - `Procfile`
+   - `runtime.txt` (with content: `python-3.10.12`)
+
+2. Make sure `Procfile` contains:
+```
+web: python -m gunicorn app:app --bind 0.0.0.0:$PORT
