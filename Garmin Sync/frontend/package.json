@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "ruizponce-frontend",
   "private": true,
   "scripts": {
     "dev": "next dev",
