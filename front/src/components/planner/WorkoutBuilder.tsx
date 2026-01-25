@@ -390,7 +390,7 @@ const StepEditor = ({
                       value={Math.floor((step.on?.duration || 0) / 60)}
                       onChange={(e) =>
                         onUpdate({
-                          on: { ...step.on, duration: parseDuration(e.target.value) },
+                          on: { zone: step.on?.zone || 4, ...step.on, duration: parseDuration(e.target.value) },
                         })
                       }
                       placeholder="min"
@@ -400,7 +400,7 @@ const StepEditor = ({
                       value={step.on?.zone || 4}
                       onChange={(e) =>
                         onUpdate({
-                          on: { ...step.on, zone: parseInt(e.target.value, 10) },
+                          on: { duration: step.on?.duration || 180, ...step.on, zone: parseInt(e.target.value, 10) },
                         })
                       }
                       className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
@@ -421,7 +421,7 @@ const StepEditor = ({
                       value={Math.floor((step.off?.duration || 0) / 60)}
                       onChange={(e) =>
                         onUpdate({
-                          off: { ...step.off, duration: parseDuration(e.target.value) },
+                          off: { zone: step.off?.zone || 2, ...step.off, duration: parseDuration(e.target.value) },
                         })
                       }
                       placeholder="min"
@@ -431,7 +431,7 @@ const StepEditor = ({
                       value={step.off?.zone || 2}
                       onChange={(e) =>
                         onUpdate({
-                          off: { ...step.off, zone: parseInt(e.target.value, 10) },
+                          off: { duration: step.off?.duration || 180, ...step.off, zone: parseInt(e.target.value, 10) },
                         })
                       }
                       className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
