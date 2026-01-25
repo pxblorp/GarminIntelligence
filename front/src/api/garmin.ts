@@ -59,11 +59,22 @@ type GarminSyncResult = {
 export async function garminSync() : Promise<GarminSyncResult> {
     try {
       
-      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-      const response = await fetch(`${BACKEND_URL}/api/sync?days=60`);
-      if (!response.ok) {
-        throw new Error(`Network response was not ok: ${response.statusText} ${response.status} ${response.url}`);
-      }
+     // Obtiene la URL de la API desde la variable de entorno pública
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+// Si no está definida, lanza un error inmediato (evita usar localhost en producción)
+if (!BACKEND_URL) {
+  throw new Error("NEXT_PUBLIC_BACKEND_URL no está definida. Verifica las variables de entorno.");
+}
+
+// Realiza la petición al backend
+const response = await fetch(`${BACKEND_URL}/api/sync?days=60`);
+
+// Manejo de errores
+if (!response.ok) {
+  throw new Error(`Network response was not ok: ${response.statusText} ${response.status} ${response.url}`);
+}
+
       
       const data = await response.json();
       
