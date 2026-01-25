@@ -16,19 +16,16 @@ const DashboardDayOverview = ({ selectedDate, activityForDate, vitalsForDate }: 
     const hasActivity = activityForDate !== null;
     
     const hasNone = !hasVitals && !hasActivity;
-    
-    return (
-        <div className="bg-blue-50 p-4 rounded-lg">
 
-            <h3 className="font-bold text-lg mb-3">
-                {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            </h3>
 
-            {hasNone && (
-                <p className="text-gray-600">No data recorded for this day.</p>
-            )}
+    const renderContent = () => {
+        if (hasNone) {
+            return <p className="text-gray-600">No data recorded for this day.</p>;
+        }
+
+        return <>
             
-            {!hasNone &&hasActivity ? (
+            {hasActivity ? (
                 <div className="mb-4">
                     <h4 className="font-semibold text-md mb-2">Activity</h4>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -56,7 +53,7 @@ const DashboardDayOverview = ({ selectedDate, activityForDate, vitalsForDate }: 
                 </div>
             ) : <div className="mb-4 text-gray-600">No activity recorded for this day.</div>}
             
-            {!hasNone && hasVitals ? (
+            {hasVitals ? (
                 <div>
                     <h4 className="font-semibold text-md mb-2">Health Vitals</h4>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -83,6 +80,17 @@ const DashboardDayOverview = ({ selectedDate, activityForDate, vitalsForDate }: 
                     </div>
                 </div>
             ) : <div className="mb-4 text-gray-600">No health vitals recorded for this day.</div>}
+            </>;
+        }
+    
+    return (
+        <div className="bg-blue-50 p-4 rounded-lg">
+
+            <h3 className="font-bold text-lg mb-3">
+                {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </h3>
+
+            {renderContent()}
             
         </div>
     );
