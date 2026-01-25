@@ -1,3 +1,5 @@
+console.log("Usando BACKEND_URL:", process.env.NEXT_PUBLIC_BACKEND_URL);
+console.log("Fetch URL:", `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/sync?days=60`);
 
 import type { Vitals } from "../types/Vitals";
 import type { Activity } from "../types/Activity";
