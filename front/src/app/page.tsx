@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Activity as ActivityIcon, Loader2, AlertCircle } from 'lucide-react';
+import { Activity as ActivityIcon, Loader2, AlertCircle, Calendar, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 import type { Vitals } from '../types/Vitals';
 import type { Activity } from '../types/Activity';
@@ -109,6 +110,14 @@ const DashboardPage = () => {
               <ActivityIcon className="text-blue-600" />
               Training Load Dashboard
             </h1>
+            <Link
+              href="/planner"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-medium"
+            >
+              <Calendar size={18} />
+              Training Planner
+              <ArrowRight size={16} />
+            </Link>
           </div>
 
           <VitalsSummary latestVitals={latestVitals} />
