@@ -62,23 +62,25 @@ def sync_garmin_data():
                 daily_activities = client.get_activities_by_date(date_str, date_str)
                 
                 for activity in daily_activities:
-                    # Calculate t*RPE (using perceived exertion if available, otherwise estimate from HR)
-                    duration_minutes = activity.get('duration', 0) / 60
-                    
-                    # Try to get RPE from activity notes or calculate from effort
-                    rpe = activity.get('averageRPE', None)
-                    if rpe is None:
-                        # Estimate RPE from training effect or average HR
-                        training_effect = activity.get('aerobicTrainingEffect', 3)
-                        rpe = min(10, max(1, int(training_effect * 2)))
-                    
-                    activities.append({
-                        'date': date_str,
-                        'duration': duration_minutes,
-                        'rpe': rpe,
-                        'trainingLoad': activity.get('trainingLoad', 0) or activity.get('aerobicTrainingEffect', 0) * 30,
-                        'tRPE': duration_minutes * rpe,
-                        'activityType': activity.get('activityType', {}).get('typeKey', 'Unknown')
+    try:
+        duration_minutes = activity.get('duration', 0) / 60
+        rpe = activity.get('averageRPE', None)
+        if rpe is None:
+            training_effect = activity.get('aerobicTrainingEffect', 3)
+            rpe = min(10, max(1, int(training_effect * 2)))
+
+        activities.append({
+            'date': date_str,
+            'duration': duration_minutes,
+            'rpe': rpe,
+            'trainingLoad': activity.get('trainingLoad', 0) or activity.get('aerobicTrainingEffect', 0) * 30,
+            'tRPE': duration_minutes * rpe,
+            'activityType': activity.get('activityType', {}).get('typeKey', 'Unknown')
+        })
+    except Exception as e:
+        print(f"Skipping activity due to error: {e}")
+        continue
+
                     })
                 
                 # Fetch health stats for the day
