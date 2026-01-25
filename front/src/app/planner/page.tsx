@@ -214,6 +214,7 @@ export default function PlannerPage() {
               </Link>
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">Session Planner</h1>
+                <h1 className="text-2xl font-bold text-gray-800">Training Planner</h1>
                 <p className="text-sm text-gray-500">
                   Plan your week, then export to Garmin Connect
                 </p>
