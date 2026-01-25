@@ -1,7 +1,7 @@
 
 import { Calendar } from 'lucide-react';
 
-import TrainingCalendarDay from "./TrainginCalendarDay";
+import TrainingCalendarDay from "./TrainingCalendarDay";
 
 import { getMonthStructure } from "../../utils/DateUtils";
 

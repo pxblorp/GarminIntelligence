@@ -2,7 +2,6 @@
 import type { Vitals } from "../types/Vitals";
 import type { Activity } from "../types/Activity";
 
-
 function generateSampleActivities(): Activity[] {
     const activities = [];
     const today = new Date();
@@ -11,7 +10,7 @@ function generateSampleActivities(): Activity[] {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
       
-      if (Math.random() > 0.3) { // 70% chance of activity
+      if (Math.random() > 0.3) { 
         const duration = Math.floor(Math.random() * 90) + 30;
         const rpe = Math.floor(Math.random() * 6) + 4;
         const trainingLoad = Math.floor(Math.random() * 150) + 50;
@@ -59,11 +58,11 @@ type GarminSyncResult = {
 
 export async function garminSync() : Promise<GarminSyncResult> {
     try {
-  
-      const response = await fetch(`${process.env.BACKEND_URL}/api/sync?days=60`);
       
+      const BACKEND_URL = process.env.NODE_ENV === 'production' ? process.env.BACKEND_URL : 'http://localhost:5000';
+      const response = await fetch(`${BACKEND_URL}/api/sync?days=60`);
       if (!response.ok) {
-        throw new Error('Failed to fetch data from Garmin');
+        throw new Error(`Network response was not ok: ${response.statusText} ${response.status} ${response.url}`);
       }
       
       const data = await response.json();
@@ -75,7 +74,7 @@ export async function garminSync() : Promise<GarminSyncResult> {
         };
 
       } 
-      throw new Error(data.error || 'Unknown error from backend');
+      throw new Error(data.error || 'Unknown error during Garmin sync');
 
     } catch (error) {
     console.error('Garmin sync error:', error);

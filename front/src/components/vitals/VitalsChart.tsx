@@ -8,6 +8,10 @@ export type VitalsChartProps = {
 };
 
 const VitalsChart = ({ vitals }: VitalsChartProps) => {
+    if (!vitals || vitals.length === 0) {
+        return <div className="text-center text-gray-500 py-8">No vitals data available</div>;
+    }
+    
     return <>
         <h2 className="text-xl font-bold text-gray-800 mb-4">Health Vitals Trends</h2>
         <ResponsiveContainer width="100%" height={300}>
