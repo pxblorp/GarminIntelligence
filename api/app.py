@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for React app
+CORS(app, origins="*")  # permite todos los orígenes
 
 # Garmin credentials - STORE THESE IN .env FILE
 GARMIN_EMAIL = os.getenv('GARMIN_EMAIL')
