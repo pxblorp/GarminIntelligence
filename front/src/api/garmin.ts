@@ -1,16 +1,9 @@
-import type { Vitals } from "./types/Vitals";
-import type { Activity } from "./types/Activity";
+
+import type { Vitals } from "../types/Vitals";
+import type { Activity } from "../types/Activity";
 
 
-export function save() {
-}
-
-
-export function load() {
-}
-
-
-const generateSampleActivities = () => {
+function generateSampleActivities(): Activity[] {
     const activities = [];
     const today = new Date();
     
@@ -37,7 +30,7 @@ const generateSampleActivities = () => {
     return activities;
   };
 
-  const generateSampleVitals = () => {
+function generateSampleVitals(): Vitals[] {
     const vitals = [];
     const today = new Date();
     
@@ -58,10 +51,13 @@ const generateSampleActivities = () => {
     return vitals;
   };
 
-export async function fetchGarminData() : Promise<{
-    activities: Activity[];
+
+type GarminSyncResult = {
     vitals: Vitals[];
-} | undefined> {
+    activities: Activity[];
+};
+
+export async function garminSync() : Promise<GarminSyncResult> {
     try {
   
       const response = await fetch(`${process.env.BACKEND_URL}/api/sync?days=60`);
@@ -74,17 +70,15 @@ export async function fetchGarminData() : Promise<{
       
       if (data.success) {
         return {
-          activities: data.activities,
-          vitals: data.vitals
+            activities: data.activities,
+            vitals: data.vitals
         };
 
       } 
+      throw new Error(data.error || 'Unknown error from backend');
 
-        throw new Error(data.message || 'Sync failed');
-      
     } catch (error) {
-      console.error('Error syncing Garmin data:', error);
-      alert(`Failed to sync with Garmin: ${(error as Error).message}. Using sample data instead.`);
+    console.error('Garmin sync error:', error);
       return {
         activities: generateSampleActivities(),
         vitals: generateSampleVitals()
