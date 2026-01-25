@@ -10,5 +10,13 @@
         {
             "path": "api",
         }
-    ]
+    ],
+    "settings": {
+        "search.exclude": {
+            "**/node_modules": true,
+            "**/dist": true,
+            "**/.next": true,
+            "**/build": true
+        }
+    }
 }

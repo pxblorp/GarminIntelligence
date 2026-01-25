@@ -3,7 +3,6 @@ import type { Activity } from "../../types/Activity";
 
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, LineChart, Line, CartesianGrid } from "recharts";
 
-
 import { formatActivitiesForChart } from "../../utils/TrainingUtils";
 
 export type ActivitiesChartProps = {
@@ -11,6 +10,10 @@ export type ActivitiesChartProps = {
 };
 
 const ActivitiesChart = ({ activities }: ActivitiesChartProps) => {
+    if (!activities || activities.length === 0) {
+        return <div className="text-center text-gray-500 py-8">No training data available</div>;
+    }
+    
     const chartData = formatActivitiesForChart(activities);
     return <>
         <h2 className="text-xl font-bold text-gray-800 mb-4">Training Load & t*RPE</h2>

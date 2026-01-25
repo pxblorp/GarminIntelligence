@@ -1,9 +1,12 @@
+
 .env
+
+
+# API
 __pycache__/
 *.pyc
 
 
+# FRONT
 node_modules/
-dist/
-build/
-.env
+.next/

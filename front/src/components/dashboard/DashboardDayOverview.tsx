@@ -11,6 +11,12 @@ export type DashboardDateOverviewProps = {
 }
 
 const DashboardDayOverview = ({ selectedDate, activityForDate, vitalsForDate }: DashboardDateOverviewProps) => {
+
+    const hasVitals = vitalsForDate !== null;
+    const hasActivity = activityForDate !== null;
+    
+    const hasNone = !hasVitals && !hasActivity;
+    
     return (
         <div className="bg-blue-50 p-4 rounded-lg">
 
@@ -18,11 +24,11 @@ const DashboardDayOverview = ({ selectedDate, activityForDate, vitalsForDate }: 
                 {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </h3>
 
-            {!activityForDate && !vitalsForDate && (
+            {hasNone && (
                 <p className="text-gray-600">No data recorded for this day.</p>
             )}
             
-            {activityForDate ? (
+            {!hasNone &&hasActivity ? (
                 <div className="mb-4">
                     <h4 className="font-semibold text-md mb-2">Activity</h4>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -50,7 +56,7 @@ const DashboardDayOverview = ({ selectedDate, activityForDate, vitalsForDate }: 
                 </div>
             ) : <div className="mb-4 text-gray-600">No activity recorded for this day.</div>}
             
-            {vitalsForDate ? (
+            {!hasNone && hasVitals ? (
                 <div>
                     <h4 className="font-semibold text-md mb-2">Health Vitals</h4>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
