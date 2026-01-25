@@ -59,7 +59,7 @@ type GarminSyncResult = {
 export async function garminSync() : Promise<GarminSyncResult> {
     try {
       
-      const BACKEND_URL = process.env.NODE_ENV === 'production' ? process.env.BACKEND_URL : 'http://localhost:5000';
+      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
       const response = await fetch(`${BACKEND_URL}/api/sync?days=60`);
       if (!response.ok) {
         throw new Error(`Network response was not ok: ${response.statusText} ${response.status} ${response.url}`);
