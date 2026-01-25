@@ -1,12 +1,17 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Activity as ActivityIcon, Loader2, AlertCircle, AlertTriangle, Home } from 'lucide-react';
+import {
+  Activity as ActivityIcon,
+  Loader2,
+  AlertCircle,
+  AlertTriangle,
+  Home,
+} from 'lucide-react';
 import Link from 'next/link';
 
 import type { Vitals } from '../../types/Vitals';
 import type { Activity } from '../../types/Activity';
-
 
 import VitalsChart from '../../components/vitals/VitalsChart';
 import VitalsSummary from '../../components/vitals/VitalsSummary';
@@ -18,9 +23,10 @@ import DashboardDateOverview from '../../components/dashboard/DashboardDayOvervi
 import { garminSync } from '../../api/garmin';
 
 const DashboardPage = () => {
-
   const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
-  const [activeChart, setActiveChart] = useState<'training' | 'vitals'>('training');
+  const [activeChart, setActiveChart] = useState<'training' | 'vitals'>(
+    'training'
+  );
 
   const [vitals, setVitals] = useState<Vitals[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -30,7 +36,6 @@ const DashboardPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [usingSampleData, setUsingSampleData] = useState<boolean>(false);
   const [backendError, setBackendError] = useState<string | null>(null);
-
 
   useEffect(() => {
     // Fix hydration mismatch by setting date on client load
@@ -56,22 +61,19 @@ const DashboardPage = () => {
     fetchData();
   }, []);
 
-
-  const latestVitals : Vitals | undefined = useMemo(() => {
+  const latestVitals: Vitals | undefined = useMemo(() => {
     if (vitals.length === 0) return undefined;
     return vitals[vitals.length - 1];
   }, [vitals]);
 
-
-
-  const getActivityForDate = (date: Date) : Activity | null => {
+  const getActivityForDate = (date: Date): Activity | null => {
     const dateStr = date.toISOString().split('T')[0];
-    return activities.find(a => a.date === dateStr) || null;
+    return activities.find((a) => a.date === dateStr) || null;
   };
 
-  const getVitalsForDate = (date: Date) : Vitals | null => {
+  const getVitalsForDate = (date: Date): Vitals | null => {
     const dateStr = date.toISOString().split('T')[0];
-    return vitals.find(v => v.date === dateStr) || null;
+    return vitals.find((v) => v.date === dateStr) || null;
   };
 
   if (isLoading || !currentMonth) {
@@ -90,10 +92,12 @@ const DashboardPage = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center border border-red-100">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Unable to Load Dashboard</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">
+            Unable to Load Dashboard
+          </h2>
           <p className="text-gray-600 mb-6">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
             Retry
@@ -123,14 +127,21 @@ const DashboardPage = () => {
 
           {usingSampleData && (
             <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
-              <AlertTriangle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
+              <AlertTriangle
+                className="text-yellow-600 flex-shrink-0 mt-0.5"
+                size={20}
+              />
               <div>
-                <p className="text-yellow-800 font-medium">Showing Sample Data</p>
+                <p className="text-yellow-800 font-medium">
+                  Showing Sample Data
+                </p>
                 <p className="text-yellow-700 text-sm">
-                  Could not connect to backend. {backendError && `Error: ${backendError}`}
+                  Could not connect to backend.{' '}
+                  {backendError && `Error: ${backendError}`}
                 </p>
                 <p className="text-yellow-600 text-xs mt-1">
-                  Make sure the backend is running and NEXT_PUBLIC_BACKEND_URL is configured correctly.
+                  Make sure the backend is running and NEXT_PUBLIC_BACKEND_URL
+                  is configured correctly.
                 </p>
               </div>
             </div>
@@ -189,10 +200,11 @@ const DashboardPage = () => {
                 vitalsForDate={getVitalsForDate(selectedDate)}
               />
             ) : (
-              <div className="text-center text-gray-500">Select a date on the calendar to view details.</div>
+              <div className="text-center text-gray-500">
+                Select a date on the calendar to view details.
+              </div>
             )}
           </div>
-          
         </div>
       </div>
     </div>

@@ -56,7 +56,9 @@ const WorkoutLibrary = ({
 
   const groupedWorkouts = SPORT_OPTIONS.reduce(
     (acc, sport) => {
-      acc[sport.value] = filteredWorkouts.filter((w) => w.sport === sport.value);
+      acc[sport.value] = filteredWorkouts.filter(
+        (w) => w.sport === sport.value
+      );
       return acc;
     },
     {} as Record<string, Workout[]>
@@ -186,7 +188,12 @@ type WorkoutLibraryCardProps = {
   onDuplicate: () => void;
 };
 
-const WorkoutLibraryCard = ({ workout, onEdit, onDelete, onDuplicate }: WorkoutLibraryCardProps) => {
+const WorkoutLibraryCard = ({
+  workout,
+  onEdit,
+  onDelete,
+  onDuplicate,
+}: WorkoutLibraryCardProps) => {
   const sportOption = SPORT_OPTIONS.find((s) => s.value === workout.sport);
   const duration = calculateWorkoutDuration(workout);
 
@@ -215,17 +222,23 @@ const WorkoutLibraryCard = ({ workout, onEdit, onDelete, onDuplicate }: WorkoutL
             >
               {sportOption?.label}
             </span>
-            <span className="text-sm font-medium text-gray-800 truncate">{workout.name}</span>
+            <span className="text-sm font-medium text-gray-800 truncate">
+              {workout.name}
+            </span>
           </div>
 
           <div className="flex items-center gap-3 text-xs text-gray-500">
             <span>{formatDuration(duration)}</span>
             <span>RPE {workout.rpe}</span>
-            {workout.estimatedLoad && <span>Load ~{Math.round(workout.estimatedLoad)}</span>}
+            {workout.estimatedLoad && (
+              <span>Load ~{Math.round(workout.estimatedLoad)}</span>
+            )}
           </div>
 
           {workout.notes && (
-            <div className="mt-1 text-xs text-gray-400 truncate">{workout.notes}</div>
+            <div className="mt-1 text-xs text-gray-400 truncate">
+              {workout.notes}
+            </div>
           )}
 
           {/* Steps Summary */}

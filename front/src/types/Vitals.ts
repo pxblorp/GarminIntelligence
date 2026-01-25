@@ -1,5 +1,3 @@
-
-
 export type Vitals = {
   date: string;
   sleepScore: number;

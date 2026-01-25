@@ -1,5 +1,3 @@
-
-
 export type Activity = {
   date: string;
   duration: number;
