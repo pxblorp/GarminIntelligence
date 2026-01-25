@@ -81,7 +81,7 @@ def sync_garmin_data():
         print(f"Skipping activity due to error: {e}")
         continue
 
-                    })
+                    }
                 
                 # Fetch health stats for the day
                 try:
