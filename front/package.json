@@ -1,0 +1,24 @@
+{
+  "name": "front",
+  "version": "1.0.0",
+  "description": "Front end for training peaks clone",
+  "license": "ISC",
+  "author": "",
+  "main": "app.ts",
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "@types/react": "^19.2.9",
+    "@types/react-dom": "^19.2.3",
+    "@types/recharts": "^1.8.29",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "lucide-react": "^0.563.0",
+    "recharts": "^3.7.0"
+  }
+}
