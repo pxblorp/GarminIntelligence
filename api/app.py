@@ -111,26 +111,24 @@ def sync_garmin_data():
                 daily_activities = client.get_activities_by_date(date_str, date_str)
                 
                 for activity in daily_activities:
-    try:
-        duration_minutes = activity.get('duration', 0) / 60
-        rpe = activity.get('averageRPE', None)
-        if rpe is None:
-            training_effect = activity.get('aerobicTrainingEffect', 3)
-            rpe = min(10, max(1, int(training_effect * 2)))
+                    try:
+                        duration_minutes = activity.get('duration', 0) / 60
+                        rpe = activity.get('averageRPE', None)
+                        if rpe is None:
+                            training_effect = activity.get('aerobicTrainingEffect', 3)
+                            rpe = min(10, max(1, int(training_effect * 2)))
 
-        activities.append({
-            'date': date_str,
-            'duration': duration_minutes,
-            'rpe': rpe,
-            'trainingLoad': activity.get('trainingLoad', 0) or activity.get('aerobicTrainingEffect', 0) * 30,
-            'tRPE': duration_minutes * rpe,
-            'activityType': activity.get('activityType', {}).get('typeKey', 'Unknown')
-        })
-    except Exception as e:
-        print(f"Skipping activity due to error: {e}")
-        continue
-
-                    }
+                        activities.append({
+                            'date': date_str,
+                            'duration': duration_minutes,
+                            'rpe': rpe,
+                            'trainingLoad': activity.get('trainingLoad', 0) or activity.get('aerobicTrainingEffect', 0) * 30,
+                            'tRPE': duration_minutes * rpe,
+                            'activityType': activity.get('activityType', {}).get('typeKey', 'Unknown')
+                        })
+                    except Exception as e:
+                        print(f"Skipping activity due to error: {e}")
+                        continue
                 
                 # Fetch health stats for the day
                 try:

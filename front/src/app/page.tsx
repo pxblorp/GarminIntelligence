@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Activity as ActivityIcon, Loader2, AlertCircle, Calendar, ArrowRight } from 'lucide-react';
+import { Activity as ActivityIcon, Loader2, AlertCircle, Calendar, ArrowRight, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 import type { Vitals } from '../types/Vitals';
@@ -19,8 +19,6 @@ import { garminSync } from '../api/garmin';
 
 const DashboardPage = () => {
 
-  const [showSettings, setShowSettings] = useState<boolean>(false);
-
   const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
   const [activeChart, setActiveChart] = useState<'training' | 'vitals'>('training');
 
@@ -30,6 +28,8 @@ const DashboardPage = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [usingSampleData, setUsingSampleData] = useState<boolean>(false);
+  const [backendError, setBackendError] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -39,9 +39,11 @@ const DashboardPage = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const { vitals, activities } = await garminSync();
-        setVitals(vitals);
-        setActivities(activities);
+        const result = await garminSync();
+        setVitals(result.vitals);
+        setActivities(result.activities);
+        setUsingSampleData(!result.isRealData);
+        setBackendError(result.error || null);
         setError(null);
       } catch (error) {
         console.error('Error during Garmin sync:', error);
@@ -119,6 +121,21 @@ const DashboardPage = () => {
               <ArrowRight size={16} />
             </Link>
           </div>
+
+          {usingSampleData && (
+            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
+              <AlertTriangle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
+              <div>
+                <p className="text-yellow-800 font-medium">Showing Sample Data</p>
+                <p className="text-yellow-700 text-sm">
+                  Could not connect to backend. {backendError && `Error: ${backendError}`}
+                </p>
+                <p className="text-yellow-600 text-xs mt-1">
+                  Make sure the backend is running and NEXT_PUBLIC_BACKEND_URL is configured correctly.
+                </p>
+              </div>
+            </div>
+          )}
 
           <VitalsSummary latestVitals={latestVitals} />
 

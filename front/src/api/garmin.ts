@@ -1,22 +1,24 @@
-console.log("Usando BACKEND_URL:", process.env.NEXT_PUBLIC_BACKEND_URL);
-console.log("Fetch URL:", `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/sync?days=60`);
-
 import type { Vitals } from "../types/Vitals";
 import type { Activity } from "../types/Activity";
+
+// Backend URL with fallback for local development
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+
+console.log("Using BACKEND_URL:", BACKEND_URL);
 
 function generateSampleActivities(): Activity[] {
     const activities = [];
     const today = new Date();
-    
+
     for (let i = 60; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
-      
-      if (Math.random() > 0.3) { 
+
+      if (Math.random() > 0.3) {
         const duration = Math.floor(Math.random() * 90) + 30;
         const rpe = Math.floor(Math.random() * 6) + 4;
         const trainingLoad = Math.floor(Math.random() * 150) + 50;
-        
+
         activities.push({
           date: date.toISOString().split('T')[0],
           duration,
@@ -27,18 +29,18 @@ function generateSampleActivities(): Activity[] {
         });
       }
     }
-    
+
     return activities;
-  };
+}
 
 function generateSampleVitals(): Vitals[] {
     const vitals = [];
     const today = new Date();
-    
+
     for (let i = 60; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
-      
+
       vitals.push({
         date: date.toISOString().split('T')[0],
         sleepScore: Math.floor(Math.random() * 30) + 70,
@@ -48,52 +50,54 @@ function generateSampleVitals(): Vitals[] {
         stress: Math.floor(Math.random() * 60) + 20
       });
     }
-    
-    return vitals;
-  };
 
+    return vitals;
+}
 
 type GarminSyncResult = {
     vitals: Vitals[];
     activities: Activity[];
+    isRealData: boolean;
+    error?: string;
 };
 
-export async function garminSync() : Promise<GarminSyncResult> {
+export async function garminSync(): Promise<GarminSyncResult> {
     try {
-      
-     // Obtiene la URL de la API desde la variable de entorno pública
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+      console.log("Fetching from:", `${BACKEND_URL}/api/sync?days=60`);
 
-// Si no está definida, lanza un error inmediato (evita usar localhost en producción)
-if (!BACKEND_URL) {
-  throw new Error("NEXT_PUBLIC_BACKEND_URL no está definida. Verifica las variables de entorno.");
-}
+      const response = await fetch(`${BACKEND_URL}/api/sync?days=60`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
 
-// Realiza la petición al backend
-const response = await fetch(`${BACKEND_URL}/api/sync?days=60`);
+      if (!response.ok) {
+        throw new Error(`Backend error: ${response.status} ${response.statusText}`);
+      }
 
-// Manejo de errores
-if (!response.ok) {
-  throw new Error(`Network response was not ok: ${response.statusText} ${response.status} ${response.url}`);
-}
-
-      
       const data = await response.json();
-      
+
       if (data.success) {
         return {
             activities: data.activities,
-            vitals: data.vitals
+            vitals: data.vitals,
+            isRealData: true
         };
+      }
 
-      } 
       throw new Error(data.error || 'Unknown error during Garmin sync');
 
     } catch (error) {
-    console.error('Garmin sync error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Garmin sync error:', errorMessage);
+
+      // Return sample data with flag indicating it's not real
       return {
         activities: generateSampleActivities(),
-        vitals: generateSampleVitals()
+        vitals: generateSampleVitals(),
+        isRealData: false,
+        error: errorMessage
       };
     }
-  };
+}
