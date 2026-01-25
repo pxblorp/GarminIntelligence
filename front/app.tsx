@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
 import { Calendar, Activity, Heart, Moon, TrendingUp } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const TrainingLoadDashboard = () => {
-  const [activities, setActivities] = useState([]);
+
+
   const [vitals, setVitals] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [showSettings, setShowSettings] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [activeChart, setActiveChart] = useState('training'); // 'training' or 'vitals'
-  const [backendUrl, setBackendUrl] = useState('http://garminintelligence-production.up.railway.app');
-  const [showSettings, setShowSettings] = useState(false);
 
-  // Load data from storage on mount
   useEffect(() => {
     loadData();
     loadBackendUrl();
@@ -65,13 +66,8 @@ const TrainingLoadDashboard = () => {
   // Function to connect to Garmin API via Python backend
   const fetchGarminData = async () => {
     try {
-      // Change this URL to match your backend server
-      const BACKEND_URL = 'http://garminintelligence-production.up.railway.app';
-      
-      // Show loading state (you could add a loading spinner here)
-      console.log('Syncing with Garmin...');
-      
-      const response = await fetch(`${BACKEND_URL}/api/sync?days=60`);
+    
+      const response = await fetch(`${process.env.BACKEND_URL}/api/sync?days=60`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch data from Garmin');
@@ -472,7 +468,6 @@ const TrainingLoadDashboard = () => {
             </div>
           </div>
 
-          {/* Selected Date Details */}
           {selectedDate && (
             <div className="bg-blue-50 p-4 rounded-lg">
               <h3 className="font-bold text-lg mb-3">
