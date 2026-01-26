@@ -1,18 +1,12 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import {
-  Activity as ActivityIcon,
-  Loader2,
-  AlertCircle,
-  AlertTriangle,
-  Home,
-} from 'lucide-react';
-import Link from 'next/link';
+import { Loader2, AlertCircle, AlertTriangle } from 'lucide-react';
 
 import type { Vitals } from '../../types/Vitals';
 import type { Activity } from '../../types/Activity';
 
+import AppHeader from '../../components/shared/AppHeader';
 import VitalsChart from '../../components/vitals/VitalsChart';
 import VitalsSummary from '../../components/vitals/VitalsSummary';
 
@@ -24,9 +18,7 @@ import { garminSync } from '../../api/garmin';
 
 const DashboardPage = () => {
   const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
-  const [activeChart, setActiveChart] = useState<'training' | 'vitals'>(
-    'training'
-  );
+  const [activeChart, setActiveChart] = useState<'training' | 'vitals'>('training');
 
   const [vitals, setVitals] = useState<Vitals[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -35,10 +27,8 @@ const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [usingSampleData, setUsingSampleData] = useState<boolean>(false);
-  const [backendError, setBackendError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fix hydration mismatch by setting date on client load
     setCurrentMonth(new Date());
 
     const fetchData = async () => {
@@ -48,10 +38,12 @@ const DashboardPage = () => {
         setVitals(result.vitals);
         setActivities(result.activities);
         setUsingSampleData(!result.isRealData);
-        setBackendError(result.error || null);
+        if (result.error) {
+          console.error('Backend error:', result.error);
+        }
         setError(null);
-      } catch (error) {
-        console.error('Error during Garmin sync:', error);
+      } catch (err) {
+        console.error('Error during Garmin sync:', err);
         setError('Failed to sync data from Garmin services.');
       } finally {
         setIsLoading(false);
@@ -68,12 +60,15 @@ const DashboardPage = () => {
 
   const getActivityForDate = (date: Date): Activity | null => {
     const dateStr = date.toISOString().split('T')[0];
-    return activities.find((a) => a.date === dateStr) || null;
+    return activities.find(a => a.date === dateStr) || null;
   };
 
+  // Get vitals for the previous day (vitals like sleep/stress reflect the previous night)
   const getVitalsForDate = (date: Date): Vitals | null => {
-    const dateStr = date.toISOString().split('T')[0];
-    return vitals.find((v) => v.date === dateStr) || null;
+    const previousDay = new Date(date);
+    previousDay.setDate(previousDay.getDate() - 1);
+    const dateStr = previousDay.toISOString().split('T')[0];
+    return vitals.find(v => v.date === dateStr) || null;
   };
 
   if (isLoading || !currentMonth) {
@@ -92,9 +87,7 @@ const DashboardPage = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center border border-red-100">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-800 mb-2">
-            Unable to Load Dashboard
-          </h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">Unable to Load Dashboard</h2>
           <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => window.location.reload()}
@@ -108,40 +101,25 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-              <ActivityIcon className="text-blue-600" />
-              Load Tracking
-            </h1>
-            <Link
-              href="/"
-              className="flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-medium"
-            >
-              <Home size={18} />
-              Home
-            </Link>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      <AppHeader
+        title="Load Tracking"
+        subtitle="View your training load, vitals, and activity history"
+        activePage="tracking"
+      />
 
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           {usingSampleData && (
             <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
-              <AlertTriangle
-                className="text-yellow-600 flex-shrink-0 mt-0.5"
-                size={20}
-              />
+              <AlertTriangle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
               <div>
-                <p className="text-yellow-800 font-medium">
-                  Showing Sample Data
-                </p>
+                <p className="text-yellow-800 font-medium">Showing Sample Data</p>
                 <p className="text-yellow-700 text-sm">
-                  Could not connect to backend.{' '}
-                  {backendError && `Error: ${backendError}`}
+                  Could not connect to backend.
                 </p>
                 <p className="text-yellow-600 text-xs mt-1">
-                  Make sure the backend is running and NEXT_PUBLIC_BACKEND_URL
-                  is configured correctly.
+                  Make sure the backend is running and NEXT_PUBLIC_BACKEND_URL is configured correctly.
                 </p>
               </div>
             </div>
@@ -187,11 +165,11 @@ const DashboardPage = () => {
               vitals={vitals}
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onMonthChange={(date: Date) => setCurrentMonth(date)}
             />
           </div>
 
+          {/* Day Detail - Inline Display */}
           <div className="mb-6">
             {selectedDate ? (
               <DashboardDateOverview
@@ -200,13 +178,13 @@ const DashboardPage = () => {
                 vitalsForDate={getVitalsForDate(selectedDate)}
               />
             ) : (
-              <div className="text-center text-gray-500">
+              <div className="text-center text-gray-500 py-4">
                 Select a date on the calendar to view details.
               </div>
             )}
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

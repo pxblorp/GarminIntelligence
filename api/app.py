@@ -136,9 +136,6 @@ def sync_garmin_data():
                     sleep_data = client.get_sleep_data(date_str)
                     hrv_data = client.get_hrv_data(date_str)
                     
-                    # Get resting HR
-                    resting_hr = stats.get('restingHeartRate', None)
-                    
                     # Get sleep data
                     sleep_score = sleep_data.get('sleepScores', {}).get('overall', {}).get('value', None) if sleep_data else None
                     sleeping_hr = sleep_data.get('averageSleepingHeartRate', None) if sleep_data else None
@@ -152,7 +149,6 @@ def sync_garmin_data():
                     vitals.append({
                         'date': date_str,
                         'sleepScore': sleep_score,
-                        'restingHR': resting_hr,
                         'sleepingHR': sleeping_hr,
                         'hrv': hrv,
                         'stress': stress
@@ -164,7 +160,6 @@ def sync_garmin_data():
                     vitals.append({
                         'date': date_str,
                         'sleepScore': None,
-                        'restingHR': None,
                         'sleepingHR': None,
                         'hrv': None,
                         'stress': None
@@ -239,7 +234,6 @@ def get_vitals():
         vitals = {
             'date': date,
             'sleepScore': sleep_data.get('sleepScores', {}).get('overall', {}).get('value', None) if sleep_data else None,
-            'restingHR': stats.get('restingHeartRate', None),
             'sleepingHR': sleep_data.get('averageSleepingHeartRate', None) if sleep_data else None,
             'hrv': hrv_data.get('lastNightAvg', None) if hrv_data else None,
             'stress': stats.get('averageStressLevel', None)

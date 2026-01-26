@@ -24,6 +24,7 @@ export type WeeklyCalendarProps = {
   onAddWorkout: (date: string) => void;
   onRemoveWorkout: (date: string, scheduledId: string) => void;
   onDropWorkout: (date: string, workout: Workout) => void;
+  onMoveWorkout: (sourceDate: string, scheduledId: string, targetDate: string) => void;
   onExportWeek: () => void;
 };
 
@@ -78,6 +79,7 @@ const WeeklyCalendar = ({
   onAddWorkout,
   onRemoveWorkout,
   onDropWorkout,
+  onMoveWorkout,
   onExportWeek,
 }: WeeklyCalendarProps) => {
   const weekDates = useMemo(() => getWeekDates(weekStart), [weekStart]);
@@ -107,15 +109,25 @@ const WeeklyCalendar = ({
     e.currentTarget.classList.remove('bg-blue-50');
   };
 
-  const handleDrop = (e: React.DragEvent, date: string) => {
+  const handleDrop = (e: React.DragEvent, targetDate: string) => {
     e.preventDefault();
     e.currentTarget.classList.remove('bg-blue-50');
 
     const workoutJson = e.dataTransfer.getData('application/json');
     if (workoutJson) {
       try {
-        const workout = JSON.parse(workoutJson) as Workout;
-        onDropWorkout(date, workout);
+        const data = JSON.parse(workoutJson);
+
+        // Check if this is a move (scheduled workout with sourceDate)
+        if (data.sourceDate && data.scheduledId) {
+          // Don't move to the same date
+          if (data.sourceDate !== targetDate) {
+            onMoveWorkout(data.sourceDate, data.scheduledId, targetDate);
+          }
+        } else {
+          // This is a copy from the library
+          onDropWorkout(targetDate, data as Workout);
+        }
       } catch (err) {
         console.error('Failed to parse dropped workout:', err);
       }
@@ -245,6 +257,7 @@ const WeeklyCalendar = ({
                   <WorkoutCard
                     key={workout.scheduledId}
                     workout={workout}
+                    sourceDate={dateStr}
                     onRemove={() =>
                       onRemoveWorkout(dateStr, workout.scheduledId)
                     }
@@ -278,16 +291,23 @@ const WeeklyCalendar = ({
 // Workout Card Sub-component
 type WorkoutCardProps = {
   workout: ScheduledWorkout;
+  sourceDate: string;
   onRemove: () => void;
 };
 
-const WorkoutCard = ({ workout, onRemove }: WorkoutCardProps) => {
+const WorkoutCard = ({ workout, sourceDate, onRemove }: WorkoutCardProps) => {
   const sportOption = SPORT_OPTIONS.find((s) => s.value === workout.sport);
   const duration = calculateWorkoutDuration(workout);
 
   const handleDragStart = (e: React.DragEvent) => {
-    e.dataTransfer.setData('application/json', JSON.stringify(workout));
-    e.dataTransfer.effectAllowed = 'copy';
+    // Include source info for move operation
+    const dragData = {
+      ...workout,
+      sourceDate,
+      scheduledId: workout.scheduledId,
+    };
+    e.dataTransfer.setData('application/json', JSON.stringify(dragData));
+    e.dataTransfer.effectAllowed = 'move';
   };
 
   return (
