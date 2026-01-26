@@ -1,25 +1,25 @@
 export type WorkoutStepTarget = {
   type: 'hr' | 'pace' | 'power' | 'open';
-  zone?: number;       // Zone (1-5)
-  value?: number;      // Specific target value
+  zone?: number; // HR/power zone (1-5)
+  value?: number; // Specific target value
 };
 
 export type IntervalStep = {
-  duration: number;    // seconds
-  zone?: number;       // Zone (1-5)
+  duration: number; // seconds
+  zone?: number; // HR zone (1-5)
   target?: WorkoutStepTarget;
 };
 
 export type WorkoutStep = {
   type: 'warmup' | 'cooldown' | 'interval' | 'recovery' | 'active';
-  duration?: number;   // seconds (for non-interval steps)
-  zone?: number;       // Zone (1-5)
+  duration?: number; // seconds (for non-interval steps)
+  zone?: number; // HR zone (1-5)
   target?: WorkoutStepTarget;
   // Interval-specific fields
-  repeat?: number;     // Number of repeats
-  on?: IntervalStep;   // Work interval
-  off?: IntervalStep;  // Recovery interval
-  notes?: string;      // Step-specific notes/description
+  repeat?: number; // Number of repeats
+  on?: IntervalStep; // Work interval
+  off?: IntervalStep; // Recovery interval
+  notes?: string; // Step-specific notes
 };
 
 export type Workout = {
@@ -27,7 +27,7 @@ export type Workout = {
   sport: 'run' | 'bike' | 'swim' | 'strength' | 'yoga' | 'sail' | 'other';
   name: string;
   steps: WorkoutStep[];
-  rpe: number;         // Rate of Perceived Exertion (1-10)
+  rpe: number; // Rate of Perceived Exertion (1-10)
   notes?: string;
   estimatedLoad?: number;
   createdAt?: string;
@@ -35,12 +35,12 @@ export type Workout = {
 };
 
 export type ScheduledWorkout = Workout & {
-  date: string;        // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   scheduledId: string;
 };
 
 export type CalendarDay = {
-  date: string;        // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   workouts: ScheduledWorkout[];
   totalLoad: number;
 };

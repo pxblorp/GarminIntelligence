@@ -6,7 +6,11 @@ import AppHeader from '../../components/shared/AppHeader';
 import WeeklyCalendar from '../../components/planner/WeeklyCalendar';
 import WorkoutLibrary from '../../components/planner/WorkoutLibrary';
 import WorkoutBuilder from '../../components/planner/WorkoutBuilder';
-import type { Workout, ScheduledWorkout, WeekCalendar } from '../../types/Workout';
+import type {
+  Workout,
+  ScheduledWorkout,
+  WeekCalendar,
+} from '../../types/Workout';
 import {
   getWorkouts,
   createWorkout,
@@ -288,7 +292,9 @@ export default function PlannerPage() {
                   <li>Drag workouts onto calendar days to schedule them</li>
                   <li>Adjust your weekly load to match your training goals</li>
                   <li>Click &quot;Export Week&quot; to download FIT files</li>
-                  <li>Upload the ZIP to Garmin Connect to sync to your watch</li>
+                  <li>
+                    Upload the ZIP to Garmin Connect to sync to your watch
+                  </li>
                 </ol>
               </div>
             </div>
