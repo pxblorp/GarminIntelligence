@@ -116,10 +116,10 @@ const DashboardPage = () => {
               <div>
                 <p className="text-yellow-800 font-medium">Showing Sample Data</p>
                 <p className="text-yellow-700 text-sm">
-                  Could not connect to backend.
+                  Garmin Connect integration not configured.
                 </p>
                 <p className="text-yellow-600 text-xs mt-1">
-                  Make sure the backend is running and NEXT_PUBLIC_BACKEND_URL is configured correctly.
+                  Data shown is generated for demonstration purposes.
                 </p>
               </div>
             </div>
