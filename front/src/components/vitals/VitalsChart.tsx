@@ -22,7 +22,6 @@ const VitalsChart = ({ vitals }: VitalsChartProps) => {
                     <Tooltip />
                     <Legend />
                     <Line type="monotone" dataKey="sleepScore" stroke="#3b82f6" name="Sleep Score" strokeWidth={2} />
-                    <Line type="monotone" dataKey="restingHR" stroke="#ef4444" name="Resting HR" strokeWidth={2} />
                     <Line type="monotone" dataKey="sleepingHR" stroke="#a855f7" name="Sleeping HR" strokeWidth={2} />
                     <Line type="monotone" dataKey="hrv" stroke="#22c55e" name="HRV" strokeWidth={2} />
                     <Line type="monotone" dataKey="stress" stroke="#f97316" name="Stress" strokeWidth={2} />

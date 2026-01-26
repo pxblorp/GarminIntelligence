@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, GripVertical, Save, X } from 'lucide-react';
 import type { Workout, WorkoutStep } from '../../types/Workout';
-import { SPORT_OPTIONS, STEP_TYPE_OPTIONS, HR_ZONES } from '../../types/Workout';
+import { SPORT_OPTIONS, STEP_TYPE_OPTIONS, getZonesForSport, getZoneLabelForSport, sportUsesZones } from '../../types/Workout';
 
 export type WorkoutBuilderProps = {
   workout?: Workout;
@@ -24,18 +24,36 @@ const defaultIntervalStep: WorkoutStep = {
   off: { duration: 180, zone: 2 },
 };
 
+// Format duration as min'sec" (e.g., 3'30")
 function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
-  return secs > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `${mins} min`;
+  if (mins === 0) return `${secs}"`;
+  if (secs === 0) return `${mins}'`;
+  return `${mins}'${secs.toString().padStart(2, '0')}"`;
 }
 
+// Parse duration from various formats: "3'30"", "3:30", "3.5", "210"
 function parseDuration(value: string): number {
-  // Handle "mm:ss" or just minutes
+  // Handle min'sec" format
+  if (value.includes("'")) {
+    const match = value.match(/(\d+)'(\d+)?/);
+    if (match) {
+      const mins = parseInt(match[1], 10) || 0;
+      const secs = parseInt(match[2], 10) || 0;
+      return mins * 60 + secs;
+    }
+  }
+  // Handle mm:ss format
   if (value.includes(':')) {
     const [mins, secs] = value.split(':').map(Number);
     return (mins || 0) * 60 + (secs || 0);
   }
+  // Handle just seconds with "
+  if (value.includes('"')) {
+    return parseInt(value.replace('"', ''), 10) || 0;
+  }
+  // Assume minutes if plain number
   return (parseInt(value, 10) || 0) * 60;
 }
 
@@ -51,6 +69,10 @@ const WorkoutBuilder = ({ workout, onSave, onCancel }: WorkoutBuilderProps) => {
       { type: 'cooldown', duration: 300, zone: 1 },
     ]
   );
+
+  const zones = getZonesForSport(sport);
+  const zoneLabel = getZoneLabelForSport(sport);
+  const hasZones = sportUsesZones(sport);
 
   const addStep = (type: WorkoutStep['type']) => {
     if (type === 'interval') {
@@ -176,8 +198,8 @@ const WorkoutBuilder = ({ workout, onSave, onCancel }: WorkoutBuilderProps) => {
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="e.g., Focus on trim, maintain cadence 90"
-            rows={2}
+            placeholder={hasZones ? "e.g., Focus on form, maintain cadence" : "Describe the workout - exercises, sets, reps..."}
+            rows={hasZones ? 2 : 4}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -186,7 +208,9 @@ const WorkoutBuilder = ({ workout, onSave, onCancel }: WorkoutBuilderProps) => {
       {/* Steps */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-3">
-          <label className="block text-sm font-medium text-gray-700">Workout Steps</label>
+          <label className="block text-sm font-medium text-gray-700">
+            {hasZones ? 'Workout Steps' : 'Session Structure'}
+          </label>
           <span className="text-sm text-gray-500">
             Total: {formatDuration(calculateTotalDuration())}
           </span>
@@ -199,6 +223,10 @@ const WorkoutBuilder = ({ workout, onSave, onCancel }: WorkoutBuilderProps) => {
               step={step}
               index={index}
               total={steps.length}
+              sport={sport}
+              zones={zones}
+              zoneLabel={zoneLabel}
+              hasZones={hasZones}
               onUpdate={(updates) => updateStep(index, updates)}
               onRemove={() => removeStep(index)}
               onMoveUp={() => index > 0 && moveStep(index, index - 1)}
@@ -268,6 +296,10 @@ type StepEditorProps = {
   step: WorkoutStep;
   index: number;
   total: number;
+  sport: string;
+  zones: readonly { zone: number; name: string; range: string; color: string }[] | null;
+  zoneLabel: string;
+  hasZones: boolean;
   onUpdate: (updates: Partial<WorkoutStep>) => void;
   onRemove: () => void;
   onMoveUp: () => void;
@@ -278,14 +310,14 @@ const StepEditor = ({
   step,
   index,
   total,
+  zones,
+  zoneLabel,
+  hasZones,
   onUpdate,
   onRemove,
   onMoveUp,
   onMoveDown,
 }: StepEditorProps) => {
-  const stepTypeOption = STEP_TYPE_OPTIONS.find((s) => s.value === step.type);
-  const zoneInfo = HR_ZONES.find((z) => z.zone === step.zone);
-
   const getStepColor = () => {
     switch (step.type) {
       case 'warmup':
@@ -375,7 +407,7 @@ const StepEditor = ({
                 <input
                   type="number"
                   min="1"
-                  max="20"
+                  max="50"
                   value={step.repeat || 5}
                   onChange={(e) => onUpdate({ repeat: parseInt(e.target.value, 10) || 1 })}
                   className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
@@ -387,30 +419,32 @@ const StepEditor = ({
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      value={Math.floor((step.on?.duration || 0) / 60)}
+                      value={formatDuration(step.on?.duration || 0)}
                       onChange={(e) =>
                         onUpdate({
-                          on: { zone: step.on?.zone || 4, ...step.on, duration: parseDuration(e.target.value) },
+                          on: { zone: step.on?.zone || 4, duration: parseDuration(e.target.value) },
                         })
                       }
-                      placeholder="min"
+                      placeholder="1'30&quot;"
                       className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
                     />
-                    <select
-                      value={step.on?.zone || 4}
-                      onChange={(e) =>
-                        onUpdate({
-                          on: { duration: step.on?.duration || 180, ...step.on, zone: parseInt(e.target.value, 10) },
-                        })
-                      }
-                      className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                    >
-                      {HR_ZONES.map((z) => (
-                        <option key={z.zone} value={z.zone}>
-                          Z{z.zone}
-                        </option>
-                      ))}
-                    </select>
+                    {hasZones && zones ? (
+                      <select
+                        value={step.on?.zone || 4}
+                        onChange={(e) =>
+                          onUpdate({
+                            on: { duration: step.on?.duration || 180, zone: parseInt(e.target.value, 10) },
+                          })
+                        }
+                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                      >
+                        {zones.map((z) => (
+                          <option key={z.zone} value={z.zone}>
+                            Z{z.zone}
+                          </option>
+                        ))}
+                      </select>
+                    ) : null}
                   </div>
                 </div>
                 <div className="bg-white rounded p-2 border">
@@ -418,61 +452,76 @@ const StepEditor = ({
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      value={Math.floor((step.off?.duration || 0) / 60)}
+                      value={formatDuration(step.off?.duration || 0)}
                       onChange={(e) =>
                         onUpdate({
-                          off: { zone: step.off?.zone || 2, ...step.off, duration: parseDuration(e.target.value) },
+                          off: { zone: step.off?.zone || 2, duration: parseDuration(e.target.value) },
                         })
                       }
-                      placeholder="min"
+                      placeholder="1'"
                       className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
                     />
-                    <select
-                      value={step.off?.zone || 2}
-                      onChange={(e) =>
-                        onUpdate({
-                          off: { duration: step.off?.duration || 180, ...step.off, zone: parseInt(e.target.value, 10) },
-                        })
-                      }
-                      className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                    >
-                      {HR_ZONES.map((z) => (
-                        <option key={z.zone} value={z.zone}>
-                          Z{z.zone}
-                        </option>
-                      ))}
-                    </select>
+                    {hasZones && zones ? (
+                      <select
+                        value={step.off?.zone || 2}
+                        onChange={(e) =>
+                          onUpdate({
+                            off: { duration: step.off?.duration || 180, zone: parseInt(e.target.value, 10) },
+                          })
+                        }
+                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                      >
+                        {zones.map((z) => (
+                          <option key={z.zone} value={z.zone}>
+                            Z{z.zone}
+                          </option>
+                        ))}
+                      </select>
+                    ) : null}
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex gap-3 text-sm">
-              <div className="flex-1">
-                <label className="text-xs text-gray-500">Duration (min)</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={Math.floor((step.duration || 0) / 60)}
-                  onChange={(e) =>
-                    onUpdate({ duration: (parseInt(e.target.value, 10) || 1) * 60 })
-                  }
-                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                />
-              </div>
-              <div className="flex-1">
-                <label className="text-xs text-gray-500">HR Zone</label>
-                <select
-                  value={step.zone || 2}
-                  onChange={(e) => onUpdate({ zone: parseInt(e.target.value, 10) })}
-                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                >
-                  {HR_ZONES.map((z) => (
-                    <option key={z.zone} value={z.zone}>
-                      Z{z.zone} - {z.name}
-                    </option>
-                  ))}
-                </select>
+            <div className="space-y-2">
+              <div className="flex gap-3 text-sm">
+                <div className={hasZones ? 'flex-1' : 'w-24'}>
+                  <label className="text-xs text-gray-500">Duration</label>
+                  <input
+                    type="text"
+                    value={formatDuration(step.duration || 0)}
+                    onChange={(e) => onUpdate({ duration: parseDuration(e.target.value) })}
+                    placeholder="10'"
+                    className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                  />
+                </div>
+                {hasZones && zones ? (
+                  <div className="flex-1">
+                    <label className="text-xs text-gray-500">{zoneLabel}</label>
+                    <select
+                      value={step.zone || 2}
+                      onChange={(e) => onUpdate({ zone: parseInt(e.target.value, 10) })}
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                    >
+                      {zones.map((z) => (
+                        <option key={z.zone} value={z.zone}>
+                          Z{z.zone} - {z.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="flex-1">
+                    <label className="text-xs text-gray-500">Description</label>
+                    <input
+                      type="text"
+                      value={step.notes || ''}
+                      onChange={(e) => onUpdate({ notes: e.target.value })}
+                      placeholder="e.g., 3x10 squats"
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}

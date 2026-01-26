@@ -47,7 +47,7 @@ const TrainingCalendarDay = (
             </div>
             <div className="flex items-center gap-0.5">
               <Heart size={10} />
-              <span>{vitals ? vitals.restingHR : '-'}</span>
+              <span>{vitals ? vitals.sleepingHR : '-'}</span>
             </div>
           </div>
         </div>

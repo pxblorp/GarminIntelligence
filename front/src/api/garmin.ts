@@ -44,7 +44,6 @@ function generateSampleVitals(): Vitals[] {
       vitals.push({
         date: date.toISOString().split('T')[0],
         sleepScore: Math.floor(Math.random() * 30) + 70,
-        restingHR: Math.floor(Math.random() * 15) + 50,
         sleepingHR: Math.floor(Math.random() * 10) + 45,
         hrv: Math.floor(Math.random() * 40) + 40,
         stress: Math.floor(Math.random() * 60) + 20
