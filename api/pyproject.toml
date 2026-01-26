@@ -12,3 +12,8 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "fit-tool>=0.9.13",
 ]
+
+[dependency-groups]
+dev = [
+    "ty>=0.0.13",
+]
