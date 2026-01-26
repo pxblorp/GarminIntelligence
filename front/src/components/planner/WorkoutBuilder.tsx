@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Trash2, GripVertical, Save, X } from 'lucide-react';
-import type { Workout, WorkoutStep } from '../../types/Workout';
+import type { Workout, WorkoutStep, ZoneInfo } from '../../types/Workout';
 import { SPORT_OPTIONS, STEP_TYPE_OPTIONS, getZonesForSport, getZoneLabelForSport, sportUsesZones } from '../../types/Workout';
 
 export type WorkoutBuilderProps = {
@@ -24,34 +24,20 @@ const defaultIntervalStep: WorkoutStep = {
   off: { duration: 180, zone: 2 },
 };
 
-// Format duration as min'sec" (e.g., 3'30")
+// Format duration as mm:ss
 function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
-  if (mins === 0) return `${secs}"`;
-  if (secs === 0) return `${mins}'`;
-  return `${mins}'${secs.toString().padStart(2, '0')}"`;
+  if (secs === 0) return `${mins} min`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-// Parse duration from various formats: "3'30"", "3:30", "3.5", "210"
+// Parse duration from mm:ss or minutes
 function parseDuration(value: string): number {
-  // Handle min'sec" format
-  if (value.includes("'")) {
-    const match = value.match(/(\d+)'(\d+)?/);
-    if (match) {
-      const mins = parseInt(match[1], 10) || 0;
-      const secs = parseInt(match[2], 10) || 0;
-      return mins * 60 + secs;
-    }
-  }
   // Handle mm:ss format
   if (value.includes(':')) {
     const [mins, secs] = value.split(':').map(Number);
     return (mins || 0) * 60 + (secs || 0);
-  }
-  // Handle just seconds with "
-  if (value.includes('"')) {
-    return parseInt(value.replace('"', ''), 10) || 0;
   }
   // Assume minutes if plain number
   return (parseInt(value, 10) || 0) * 60;
@@ -70,9 +56,9 @@ const WorkoutBuilder = ({ workout, onSave, onCancel }: WorkoutBuilderProps) => {
     ]
   );
 
-  const zones = getZonesForSport(sport);
-  const zoneLabel = getZoneLabelForSport(sport);
-  const hasZones = sportUsesZones(sport);
+  const zones = useMemo(() => getZonesForSport(sport), [sport]);
+  const zoneLabel = useMemo(() => getZoneLabelForSport(sport), [sport]);
+  const hasZones = useMemo(() => sportUsesZones(sport), [sport]);
 
   const addStep = (type: WorkoutStep['type']) => {
     if (type === 'interval') {
@@ -223,7 +209,6 @@ const WorkoutBuilder = ({ workout, onSave, onCancel }: WorkoutBuilderProps) => {
               step={step}
               index={index}
               total={steps.length}
-              sport={sport}
               zones={zones}
               zoneLabel={zoneLabel}
               hasZones={hasZones}
@@ -296,8 +281,7 @@ type StepEditorProps = {
   step: WorkoutStep;
   index: number;
   total: number;
-  sport: string;
-  zones: readonly { zone: number; name: string; range: string; color: string }[] | null;
+  zones: ZoneInfo[] | null;
   zoneLabel: string;
   hasZones: boolean;
   onUpdate: (updates: Partial<WorkoutStep>) => void;
@@ -425,7 +409,7 @@ const StepEditor = ({
                           on: { zone: step.on?.zone || 4, duration: parseDuration(e.target.value) },
                         })
                       }
-                      placeholder="1'30&quot;"
+                      placeholder="3:00"
                       className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
                     />
                     {hasZones && zones ? (
@@ -458,7 +442,7 @@ const StepEditor = ({
                           off: { zone: step.off?.zone || 2, duration: parseDuration(e.target.value) },
                         })
                       }
-                      placeholder="1'"
+                      placeholder="1:00"
                       className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
                     />
                     {hasZones && zones ? (
@@ -491,7 +475,7 @@ const StepEditor = ({
                     type="text"
                     value={formatDuration(step.duration || 0)}
                     onChange={(e) => onUpdate({ duration: parseDuration(e.target.value) })}
-                    placeholder="10'"
+                    placeholder="10:00"
                     className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
                   />
                 </div>

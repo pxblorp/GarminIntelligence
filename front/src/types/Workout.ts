@@ -96,15 +96,18 @@ export const HR_ZONES = [
   { zone: 5, name: 'VO2max', range: '90-100%', color: 'bg-red-200' },
 ] as const;
 
-// Helper to get zones for a sport
-export function getZonesForSport(sport: string) {
+// Zone type for props
+export type ZoneInfo = { zone: number; name: string; range: string; color: string };
+
+// Helper to get zones for a sport (returns mutable array)
+export function getZonesForSport(sport: string): ZoneInfo[] | null {
   const sportOption = SPORT_OPTIONS.find(s => s.value === sport);
   if (!sportOption || sportOption.zoneType === 'none') return null;
 
   switch (sportOption.zoneType) {
-    case 'pace': return PACE_ZONES;
-    case 'power': return POWER_ZONES;
-    default: return HR_ZONES;
+    case 'pace': return [...PACE_ZONES];
+    case 'power': return [...POWER_ZONES];
+    default: return [...HR_ZONES];
   }
 }
 

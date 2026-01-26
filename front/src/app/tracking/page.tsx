@@ -17,7 +17,6 @@ import DashboardDateOverview from '../../components/dashboard/DashboardDayOvervi
 import { garminSync } from '../../api/garmin';
 
 const DashboardPage = () => {
-
   const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
   const [activeChart, setActiveChart] = useState<'training' | 'vitals'>('training');
 
@@ -28,8 +27,6 @@ const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [usingSampleData, setUsingSampleData] = useState<boolean>(false);
-  const [backendError, setBackendError] = useState<string | null>(null);
-
 
   useEffect(() => {
     setCurrentMonth(new Date());
@@ -41,10 +38,12 @@ const DashboardPage = () => {
         setVitals(result.vitals);
         setActivities(result.activities);
         setUsingSampleData(!result.isRealData);
-        setBackendError(result.error || null);
+        if (result.error) {
+          console.error('Backend error:', result.error);
+        }
         setError(null);
-      } catch (error) {
-        console.error('Error during Garmin sync:', error);
+      } catch (err) {
+        console.error('Error during Garmin sync:', err);
         setError('Failed to sync data from Garmin services.');
       } finally {
         setIsLoading(false);
@@ -54,29 +53,22 @@ const DashboardPage = () => {
     fetchData();
   }, []);
 
-
-  const latestVitals : Vitals | undefined = useMemo(() => {
+  const latestVitals: Vitals | undefined = useMemo(() => {
     if (vitals.length === 0) return undefined;
     return vitals[vitals.length - 1];
   }, [vitals]);
 
-
-  const getActivityForDate = (date: Date) : Activity | null => {
+  const getActivityForDate = (date: Date): Activity | null => {
     const dateStr = date.toISOString().split('T')[0];
     return activities.find(a => a.date === dateStr) || null;
   };
 
   // Get vitals for the previous day (vitals like sleep/stress reflect the previous night)
-  const getVitalsForDate = (date: Date) : Vitals | null => {
-    // Use previous day's vitals data since sleep/stress data represents the previous night
+  const getVitalsForDate = (date: Date): Vitals | null => {
     const previousDay = new Date(date);
     previousDay.setDate(previousDay.getDate() - 1);
     const dateStr = previousDay.toISOString().split('T')[0];
     return vitals.find(v => v.date === dateStr) || null;
-  };
-
-  const handleCloseModal = () => {
-    setSelectedDate(undefined);
   };
 
   if (isLoading || !currentMonth) {
@@ -124,7 +116,7 @@ const DashboardPage = () => {
               <div>
                 <p className="text-yellow-800 font-medium">Showing Sample Data</p>
                 <p className="text-yellow-700 text-sm">
-                  Could not connect to backend. {backendError && `Error: ${backendError}`}
+                  Could not connect to backend.
                 </p>
                 <p className="text-yellow-600 text-xs mt-1">
                   Make sure the backend is running and NEXT_PUBLIC_BACKEND_URL is configured correctly.
@@ -177,18 +169,22 @@ const DashboardPage = () => {
             />
           </div>
 
+          {/* Day Detail - Inline Display */}
+          <div className="mb-6">
+            {selectedDate ? (
+              <DashboardDateOverview
+                selectedDate={selectedDate}
+                activityForDate={getActivityForDate(selectedDate)}
+                vitalsForDate={getVitalsForDate(selectedDate)}
+              />
+            ) : (
+              <div className="text-center text-gray-500 py-4">
+                Select a date on the calendar to view details.
+              </div>
+            )}
+          </div>
         </div>
       </main>
-
-      {/* Day Detail Modal */}
-      {selectedDate && (
-        <DashboardDateOverview
-          selectedDate={selectedDate}
-          activityForDate={getActivityForDate(selectedDate)}
-          vitalsForDate={getVitalsForDate(selectedDate)}
-          onClose={handleCloseModal}
-        />
-      )}
     </div>
   );
 };
