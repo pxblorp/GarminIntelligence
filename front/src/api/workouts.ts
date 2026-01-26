@@ -1,6 +1,7 @@
 import type { Workout, ScheduledWorkout, WeekCalendar } from '../types/Workout';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
 // ============================================================================
 // WORKOUT TEMPLATES API
@@ -17,7 +18,9 @@ export async function getWorkouts(): Promise<Workout[]> {
   return data.workouts;
 }
 
-export async function createWorkout(workout: Omit<Workout, 'id'>): Promise<Workout> {
+export async function createWorkout(
+  workout: Omit<Workout, 'id'>
+): Promise<Workout> {
   const response = await fetch(`${BACKEND_URL}/api/workouts`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -33,7 +36,10 @@ export async function createWorkout(workout: Omit<Workout, 'id'>): Promise<Worko
   return data.workout;
 }
 
-export async function updateWorkout(id: string, workout: Partial<Workout>): Promise<Workout> {
+export async function updateWorkout(
+  id: string,
+  workout: Partial<Workout>
+): Promise<Workout> {
   const response = await fetch(`${BACKEND_URL}/api/workouts/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -64,7 +70,10 @@ export async function deleteWorkout(id: string): Promise<void> {
 // CALENDAR API
 // ============================================================================
 
-export async function getCalendar(startDate: string, endDate: string): Promise<{ calendar: WeekCalendar; weeklyLoad: number }> {
+export async function getCalendar(
+  startDate: string,
+  endDate: string
+): Promise<{ calendar: WeekCalendar; weeklyLoad: number }> {
   const response = await fetch(
     `${BACKEND_URL}/api/calendar?start_date=${startDate}&end_date=${endDate}`
   );
@@ -82,9 +91,10 @@ export async function scheduleWorkout(
   date: string,
   workoutOrId: Workout | string
 ): Promise<ScheduledWorkout> {
-  const body = typeof workoutOrId === 'string'
-    ? { date, workoutId: workoutOrId }
-    : { date, workout: workoutOrId };
+  const body =
+    typeof workoutOrId === 'string'
+      ? { date, workoutId: workoutOrId }
+      : { date, workout: workoutOrId };
 
   const response = await fetch(`${BACKEND_URL}/api/calendar`, {
     method: 'POST',
@@ -101,10 +111,16 @@ export async function scheduleWorkout(
   return data.scheduled;
 }
 
-export async function unscheduleWorkout(date: string, scheduledId: string): Promise<void> {
-  const response = await fetch(`${BACKEND_URL}/api/calendar/${date}/${scheduledId}`, {
-    method: 'DELETE',
-  });
+export async function unscheduleWorkout(
+  date: string,
+  scheduledId: string
+): Promise<void> {
+  const response = await fetch(
+    `${BACKEND_URL}/api/calendar/${date}/${scheduledId}`,
+    {
+      method: 'DELETE',
+    }
+  );
 
   if (!response.ok) {
     const data = await response.json();
@@ -117,7 +133,9 @@ export async function unscheduleWorkout(date: string, scheduledId: string): Prom
 // ============================================================================
 
 export async function exportWeek(startDate: string): Promise<Blob> {
-  const response = await fetch(`${BACKEND_URL}/api/export/week?start_date=${startDate}`);
+  const response = await fetch(
+    `${BACKEND_URL}/api/export/week?start_date=${startDate}`
+  );
 
   if (!response.ok) {
     const data = await response.json();
@@ -128,7 +146,9 @@ export async function exportWeek(startDate: string): Promise<Blob> {
 }
 
 export async function exportSingleWorkout(scheduledId: string): Promise<Blob> {
-  const response = await fetch(`${BACKEND_URL}/api/export/workout/${scheduledId}`);
+  const response = await fetch(
+    `${BACKEND_URL}/api/export/workout/${scheduledId}`
+  );
 
   if (!response.ok) {
     const data = await response.json();

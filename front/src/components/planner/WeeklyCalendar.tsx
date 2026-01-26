@@ -1,8 +1,18 @@
 'use client';
 
 import { useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Trash2, Download, Plus } from 'lucide-react';
-import type { ScheduledWorkout, WeekCalendar, Workout } from '../../types/Workout';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Trash2,
+  Download,
+  Plus,
+} from 'lucide-react';
+import type {
+  ScheduledWorkout,
+  WeekCalendar,
+  Workout,
+} from '../../types/Workout';
 import { SPORT_OPTIONS } from '../../types/Workout';
 
 export type WeeklyCalendarProps = {
@@ -137,7 +147,9 @@ const WeeklyCalendar = ({
   const weekEndDate = weekDates[6];
   const weekRangeLabel = `${formatShortDate(weekStart)} - ${formatShortDate(weekEndDate)}`;
 
-  const hasWorkouts = Object.values(calendar).some((workouts) => workouts.length > 0);
+  const hasWorkouts = Object.values(calendar).some(
+    (workouts) => workouts.length > 0
+  );
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -151,7 +163,9 @@ const WeeklyCalendar = ({
             >
               <ChevronLeft size={20} />
             </button>
-            <h2 className="text-lg font-semibold min-w-[180px] text-center">{weekRangeLabel}</h2>
+            <h2 className="text-lg font-semibold min-w-[180px] text-center">
+              {weekRangeLabel}
+            </h2>
             <button
               onClick={() => navigateWeek(1)}
               className="p-1.5 hover:bg-white/20 rounded-full transition-colors"
@@ -205,7 +219,9 @@ const WeeklyCalendar = ({
               key={day}
               className={`p-2 text-center border-b ${isToday ? 'bg-blue-50' : 'bg-gray-50'}`}
             >
-              <div className={`text-sm font-medium ${isToday ? 'text-blue-600' : 'text-gray-600'}`}>
+              <div
+                className={`text-sm font-medium ${isToday ? 'text-blue-600' : 'text-gray-600'}`}
+              >
                 {day}
               </div>
               <div
@@ -221,7 +237,10 @@ const WeeklyCalendar = ({
         {weekDates.map((date, index) => {
           const dateStr = formatDate(date);
           const workouts = calendar[dateStr] || [];
-          const dayLoad = workouts.reduce((sum, w) => sum + (w.estimatedLoad || 0), 0);
+          const dayLoad = workouts.reduce(
+            (sum, w) => sum + (w.estimatedLoad || 0),
+            0
+          );
           const isToday = dateStr === formatDate(new Date());
 
           return (
@@ -238,8 +257,9 @@ const WeeklyCalendar = ({
                   <WorkoutCard
                     key={workout.scheduledId}
                     workout={workout}
-                    sourceDate={dateStr}
-                    onRemove={() => onRemoveWorkout(dateStr, workout.scheduledId)}
+                    onRemove={() =>
+                      onRemoveWorkout(dateStr, workout.scheduledId)
+                    }
                   />
                 ))}
               </div>
@@ -297,9 +317,13 @@ const WorkoutCard = ({ workout, sourceDate, onRemove }: WorkoutCardProps) => {
     >
       <div className="flex justify-between items-start">
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-gray-800 truncate">{workout.name}</div>
+          <div className="text-sm font-medium text-gray-800 truncate">
+            {workout.name}
+          </div>
           <div className="flex items-center gap-2 text-xs text-gray-600">
-            <span className={`px-1.5 py-0.5 rounded text-white text-[10px] ${sportOption?.color}`}>
+            <span
+              className={`px-1.5 py-0.5 rounded text-white text-[10px] ${sportOption?.color}`}
+            >
               {sportOption?.label || workout.sport}
             </span>
             <span>{formatDuration(duration)}</span>
@@ -317,7 +341,9 @@ const WorkoutCard = ({ workout, sourceDate, onRemove }: WorkoutCardProps) => {
         </button>
       </div>
       {workout.notes && (
-        <div className="mt-1 text-xs text-gray-500 truncate">{workout.notes}</div>
+        <div className="mt-1 text-xs text-gray-500 truncate">
+          {workout.notes}
+        </div>
       )}
     </div>
   );

@@ -1,9 +1,8 @@
-
 import { Calendar } from 'lucide-react';
 
-import TrainingCalendarDay from "./TrainingCalendarDay";
+import TrainingCalendarDay from './TrainingCalendarDay';
 
-import { getMonthStructure } from "../../utils/DateUtils";
+import { getMonthStructure } from '../../utils/DateUtils';
 
 import type { Vitals } from '../../types/Vitals';
 import type { Activity } from '../../types/Activity';
@@ -17,24 +16,22 @@ export type TrainingCalendarProps = {
   onMonthChange: (date: Date) => void;
 };
 
-
-
 const TrainingCalendar = ({
   currentMonth,
   activities,
   vitals,
   selectedDate,
   onSelectDate,
-  onMonthChange
+  onMonthChange,
 }: TrainingCalendarProps) => {
   const getActivityForDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    return activities.find(a => a.date === dateStr);
+    return activities.find((a) => a.date === dateStr);
   };
 
   const getVitalsForDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    return vitals.find(v => v.date === dateStr);
+    return vitals.find((v) => v.date === dateStr);
   };
 
   const { daysInMonth, startingWeekday } = getMonthStructure(currentMonth);
@@ -45,10 +42,15 @@ const TrainingCalendar = ({
   }
 
   for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    const date = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth(),
+      day
+    );
     const vitalForDay = getVitalsForDate(date);
     const activityForDay = getActivityForDate(date);
-    const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
+    const isSelected =
+      selectedDate && date.toDateString() === selectedDate.toDateString();
 
     days.push(
       <TrainingCalendarDay
@@ -71,16 +73,33 @@ const TrainingCalendar = ({
         </h2>
         <div className="flex gap-2">
           <button
-            onClick={() => onMonthChange(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+            onClick={() =>
+              onMonthChange(
+                new Date(
+                  currentMonth.getFullYear(),
+                  currentMonth.getMonth() - 1
+                )
+              )
+            }
             className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
           >
             ←
           </button>
           <span className="px-4 py-1 font-semibold">
-            {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            {currentMonth.toLocaleDateString('en-US', {
+              month: 'long',
+              year: 'numeric',
+            })}
           </span>
           <button
-            onClick={() => onMonthChange(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+            onClick={() =>
+              onMonthChange(
+                new Date(
+                  currentMonth.getFullYear(),
+                  currentMonth.getMonth() + 1
+                )
+              )
+            }
             className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
           >
             →
@@ -89,19 +108,22 @@ const TrainingCalendar = ({
       </div>
 
       <div className="grid grid-cols-7 gap-1 mb-2">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-          <div key={day} className="text-center font-semibold text-sm text-gray-600">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+          <div
+            key={day}
+            className="text-center font-semibold text-sm text-gray-600"
+          >
             {day}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1">
-        {days}
-      </div>
+      <div className="grid grid-cols-7 gap-1">{days}</div>
 
       <div className="mt-4">
-        <div className="font-semibold mb-2 text-sm">Background Color - Sleep Score:</div>
+        <div className="font-semibold mb-2 text-sm">
+          Background Color - Sleep Score:
+        </div>
         <div className="flex gap-4 text-sm mb-3">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-green-200 border"></div>
@@ -120,7 +142,9 @@ const TrainingCalendar = ({
             <span>Poor (&lt;60)</span>
           </div>
         </div>
-        <div className="font-semibold mb-2 text-sm">Activity Badge - Training Load:</div>
+        <div className="font-semibold mb-2 text-sm">
+          Activity Badge - Training Load:
+        </div>
         <div className="flex gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-green-200 border"></div>

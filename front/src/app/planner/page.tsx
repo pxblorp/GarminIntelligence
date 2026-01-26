@@ -6,7 +6,11 @@ import AppHeader from '../../components/shared/AppHeader';
 import WeeklyCalendar from '../../components/planner/WeeklyCalendar';
 import WorkoutLibrary from '../../components/planner/WorkoutLibrary';
 import WorkoutBuilder from '../../components/planner/WorkoutBuilder';
-import type { Workout, ScheduledWorkout, WeekCalendar } from '../../types/Workout';
+import type {
+  Workout,
+  ScheduledWorkout,
+  WeekCalendar,
+} from '../../types/Workout';
 import {
   getWorkouts,
   createWorkout,
@@ -222,11 +226,32 @@ export default function PlannerPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <AppHeader
-        title="Training Planner"
-        subtitle="Plan your week, then export to Garmin Connect"
-        activePage="planner"
-      />
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link
+                href="/"
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <ArrowLeft size={20} />
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800">
+                  Session Planner
+                </h1>
+                <h1 className="text-2xl font-bold text-gray-800">
+                  Training Planner
+                </h1>
+                <p className="text-sm text-gray-500">
+                  Plan your week, then export to Garmin Connect
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
@@ -288,7 +313,9 @@ export default function PlannerPage() {
                   <li>Drag workouts onto calendar days to schedule them</li>
                   <li>Adjust your weekly load to match your training goals</li>
                   <li>Click &quot;Export Week&quot; to download FIT files</li>
-                  <li>Upload the ZIP to Garmin Connect to sync to your watch</li>
+                  <li>
+                    Upload the ZIP to Garmin Connect to sync to your watch
+                  </li>
                 </ol>
               </div>
             </div>
