@@ -1,14 +1,11 @@
 import type { Workout, ScheduledWorkout, WeekCalendar } from '../types/Workout';
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-
 // ============================================================================
 // WORKOUT TEMPLATES API
 // ============================================================================
 
 export async function getWorkouts(): Promise<Workout[]> {
-  const response = await fetch(`${BACKEND_URL}/api/workouts`);
+  const response = await fetch('/api/workouts');
   const data = await response.json();
 
   if (!response.ok) {
@@ -18,10 +15,8 @@ export async function getWorkouts(): Promise<Workout[]> {
   return data.workouts;
 }
 
-export async function createWorkout(
-  workout: Omit<Workout, 'id'>
-): Promise<Workout> {
-  const response = await fetch(`${BACKEND_URL}/api/workouts`, {
+export async function createWorkout(workout: Omit<Workout, 'id'>): Promise<Workout> {
+  const response = await fetch('/api/workouts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(workout),
@@ -36,11 +31,8 @@ export async function createWorkout(
   return data.workout;
 }
 
-export async function updateWorkout(
-  id: string,
-  workout: Partial<Workout>
-): Promise<Workout> {
-  const response = await fetch(`${BACKEND_URL}/api/workouts/${id}`, {
+export async function updateWorkout(id: string, workout: Partial<Workout>): Promise<Workout> {
+  const response = await fetch(`/api/workouts/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(workout),
@@ -56,7 +48,7 @@ export async function updateWorkout(
 }
 
 export async function deleteWorkout(id: string): Promise<void> {
-  const response = await fetch(`${BACKEND_URL}/api/workouts/${id}`, {
+  const response = await fetch(`/api/workouts/${id}`, {
     method: 'DELETE',
   });
 
@@ -75,7 +67,7 @@ export async function getCalendar(
   endDate: string
 ): Promise<{ calendar: WeekCalendar; weeklyLoad: number }> {
   const response = await fetch(
-    `${BACKEND_URL}/api/calendar?start_date=${startDate}&end_date=${endDate}`
+    `/api/calendar?start_date=${startDate}&end_date=${endDate}`
   );
 
   const data = await response.json();
@@ -96,7 +88,7 @@ export async function scheduleWorkout(
       ? { date, workoutId: workoutOrId }
       : { date, workout: workoutOrId };
 
-  const response = await fetch(`${BACKEND_URL}/api/calendar`, {
+  const response = await fetch('/api/calendar', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -111,16 +103,10 @@ export async function scheduleWorkout(
   return data.scheduled;
 }
 
-export async function unscheduleWorkout(
-  date: string,
-  scheduledId: string
-): Promise<void> {
-  const response = await fetch(
-    `${BACKEND_URL}/api/calendar/${date}/${scheduledId}`,
-    {
-      method: 'DELETE',
-    }
-  );
+export async function unscheduleWorkout(date: string, scheduledId: string): Promise<void> {
+  const response = await fetch(`/api/calendar/${date}/${scheduledId}`, {
+    method: 'DELETE',
+  });
 
   if (!response.ok) {
     const data = await response.json();
@@ -133,9 +119,7 @@ export async function unscheduleWorkout(
 // ============================================================================
 
 export async function exportWeek(startDate: string): Promise<Blob> {
-  const response = await fetch(
-    `${BACKEND_URL}/api/export/week?start_date=${startDate}`
-  );
+  const response = await fetch(`/api/export/week?start_date=${startDate}`);
 
   if (!response.ok) {
     const data = await response.json();
@@ -146,9 +130,7 @@ export async function exportWeek(startDate: string): Promise<Blob> {
 }
 
 export async function exportSingleWorkout(scheduledId: string): Promise<Blob> {
-  const response = await fetch(
-    `${BACKEND_URL}/api/export/workout/${scheduledId}`
-  );
+  const response = await fetch(`/api/export/workout/${scheduledId}`);
 
   if (!response.ok) {
     const data = await response.json();
