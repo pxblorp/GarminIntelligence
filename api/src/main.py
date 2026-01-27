@@ -1,37 +1,50 @@
-from flask import Flask
-from flask_cors import CORS
+from fastapi.middleware import Middleware
 import os
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 
-# Import blueprints
-from .routes.health import health_bp
-from .routes.sync import sync_bp
-from .routes.activities import activities_bp
-from .routes.vitals import vitals_bp
-from .routes.workouts import workouts_bp
+from .services.GarminManager import garmin_manager
+
+from .routes.health import router as health_router
+from .routes.sync import router as sync_router
+from .routes.activities import router as activities_router
+from .routes.vitals import router as vitals_router
+from .routes.workouts import router as workouts_router
 
 load_dotenv()
-
-app = Flask(__name__)
-CORS(app)
-
-# Register blueprints
-app.register_blueprint(health_bp)
-app.register_blueprint(sync_bp)
-app.register_blueprint(activities_bp)
-app.register_blueprint(vitals_bp)
-app.register_blueprint(workouts_bp)
 
 GARMIN_EMAIL = os.getenv('GARMIN_EMAIL')
 GARMIN_PASSWORD = os.getenv('GARMIN_PASSWORD')
 
-
-if __name__ == '__main__':
-    # Check if credentials are set
-    if not GARMIN_EMAIL or not GARMIN_PASSWORD:
-        print("ERROR: GARMIN_EMAIL and GARMIN_PASSWORD must be set in .env file")
-        exit(1)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    if GARMIN_EMAIL and GARMIN_PASSWORD:
+        garmin_manager.add_client(GARMIN_EMAIL, GARMIN_PASSWORD)
     
     print("Starting Garmin Connect Backend...")
     print(f"Login email: {GARMIN_EMAIL}")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    yield
+    garmin_manager.close_all()
+
+
+app = FastAPI(title="Garmin Intelligence API", lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware, # type: ignore
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=True
+)
+
+app.include_router(sync_router)
+app.include_router(health_router)
+app.include_router(vitals_router)
+app.include_router(workouts_router)
+app.include_router(activities_router)
+
+if __name__ == '__main__':
+    import uvicorn
+    uvicorn.run("src.main:app", host='0.0.0.0', port=5000, reload=True)

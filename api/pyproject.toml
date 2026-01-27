@@ -5,12 +5,12 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "flask>=3.1.2",
-    "flask-cors>=6.0.2",
+    "fastapi>=0.104.1",
+    "uvicorn>=0.24.0",
     "garminconnect>=0.2.38",
-    "gunicorn>=24.1.1",
     "python-dotenv>=1.2.1",
-    "fit-tool>=0.9.13",
+    "pydantic>=2.0.0",
+    "garmin-fit-sdk>=21.188.0",
 ]
 
 [dependency-groups]
