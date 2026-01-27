@@ -2,11 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getWorkoutTemplates, createWorkoutTemplate } from '../../../lib/storage';
 
 export async function GET() {
-  const workouts = getWorkoutTemplates();
-  return NextResponse.json({
-    success: true,
-    workouts,
-  });
+  try {
+    const workouts = await getWorkoutTemplates();
+    return NextResponse.json({
+      success: true,
+      workouts,
+    });
+  } catch (error) {
+    console.error('Failed to fetch workouts:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to fetch workouts' },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -17,7 +25,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Request body is required' }, { status: 400 });
     }
 
-    const workout = createWorkoutTemplate(data);
+    const workout = await createWorkoutTemplate(data);
 
     return NextResponse.json({
       success: true,
