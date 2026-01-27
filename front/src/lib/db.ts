@@ -57,6 +57,18 @@ export async function initializeDatabase(): Promise<void> {
   await client.execute(`
     CREATE INDEX IF NOT EXISTS idx_scheduled_workouts_date ON scheduled_workouts(date)
   `);
+
+  // Create user zones table for custom HR, pace, and power zones
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS user_zones (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL DEFAULT 'default',
+      type TEXT NOT NULL,
+      zones TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE(user_id, type)
+    )
+  `);
 }
 
 // Check if database is configured

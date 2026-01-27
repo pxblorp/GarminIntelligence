@@ -1,8 +1,11 @@
 import type { Workout, ScheduledWorkout, WorkoutStep } from '../types/Workout';
+import type { UserZones, ZoneType, Zone } from '../types/Zones';
+import { getDefaultZones } from '../types/Zones';
 import { getDb, isDatabaseConfigured, initializeDatabase } from './db';
 
 // In-memory fallback storage (used when database is not configured)
 const memoryWorkoutTemplates: Map<string, Workout> = new Map();
+const memoryUserZones: Map<string, UserZones> = new Map();
 const memoryScheduledWorkouts: Map<string, ScheduledWorkout[]> = new Map();
 
 // Database initialization flag
@@ -411,4 +414,120 @@ export async function getAllScheduledWorkoutsForWeek(
   }
 
   return result;
+}
+
+// ============================================================================
+// USER ZONES
+// ============================================================================
+
+function getZoneKey(userId: string, type: ZoneType): string {
+  return `${userId}:${type}`;
+}
+
+export async function getUserZones(userId: string = 'default', type: ZoneType): Promise<UserZones> {
+  if (!isDatabaseConfigured()) {
+    const key = getZoneKey(userId, type);
+    const stored = memoryUserZones.get(key);
+    if (stored) return stored;
+
+    // Return default zones
+    return {
+      id: generateId(),
+      userId,
+      type,
+      zones: getDefaultZones(type),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  await ensureDbInitialized();
+  const db = getDb();
+  const result = await db.execute({
+    sql: 'SELECT * FROM user_zones WHERE user_id = ? AND type = ?',
+    args: [userId, type],
+  });
+
+  if (result.rows.length === 0) {
+    // Return default zones
+    return {
+      id: generateId(),
+      userId,
+      type,
+      zones: getDefaultZones(type),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  const row = result.rows[0];
+  return {
+    id: row.id as string,
+    userId: row.user_id as string,
+    type: row.type as ZoneType,
+    zones: JSON.parse(row.zones as string) as Zone[],
+    updatedAt: row.updated_at as string,
+  };
+}
+
+export async function getAllUserZones(userId: string = 'default'): Promise<UserZones[]> {
+  const types: ZoneType[] = ['hr', 'pace', 'power'];
+  const results = await Promise.all(types.map((type) => getUserZones(userId, type)));
+  return results;
+}
+
+export async function saveUserZones(
+  userId: string = 'default',
+  type: ZoneType,
+  zones: Zone[]
+): Promise<UserZones> {
+  const now = new Date().toISOString();
+
+  if (!isDatabaseConfigured()) {
+    const key = getZoneKey(userId, type);
+    const existing = memoryUserZones.get(key);
+    const userZones: UserZones = {
+      id: existing?.id || generateId(),
+      userId,
+      type,
+      zones,
+      updatedAt: now,
+    };
+    memoryUserZones.set(key, userZones);
+    return userZones;
+  }
+
+  await ensureDbInitialized();
+  const db = getDb();
+
+  // Check if exists
+  const existing = await db.execute({
+    sql: 'SELECT id FROM user_zones WHERE user_id = ? AND type = ?',
+    args: [userId, type],
+  });
+
+  const id = existing.rows.length > 0 ? (existing.rows[0].id as string) : generateId();
+
+  if (existing.rows.length > 0) {
+    await db.execute({
+      sql: 'UPDATE user_zones SET zones = ?, updated_at = ? WHERE id = ?',
+      args: [JSON.stringify(zones), now, id],
+    });
+  } else {
+    await db.execute({
+      sql: 'INSERT INTO user_zones (id, user_id, type, zones, updated_at) VALUES (?, ?, ?, ?, ?)',
+      args: [id, userId, type, JSON.stringify(zones), now],
+    });
+  }
+
+  return {
+    id,
+    userId,
+    type,
+    zones,
+    updatedAt: now,
+  };
+}
+
+export async function resetUserZones(userId: string = 'default', type: ZoneType): Promise<UserZones> {
+  const defaultZones = getDefaultZones(type);
+  return saveUserZones(userId, type, defaultZones);
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getScheduledWorkoutById } from '../../../../../lib/storage';
-import { generateFitWorkout, generateFitFilename } from '../../../../../lib/fit-generator';
+import { getScheduledWorkoutById, getAllUserZones } from '../../../../../lib/storage';
+import { generateFitWorkout, generateFitFilename, type UserZonesForFit } from '../../../../../lib/fit-generator';
 
 type RouteContext = {
   params: Promise<{ scheduledId: string }>;
@@ -16,7 +16,16 @@ export async function GET(_request: NextRequest, context: RouteContext) {
   }
 
   try {
-    const fitBytes = generateFitWorkout(result.workout);
+    // Fetch user zones for FIT file generation
+    const allZones = await getAllUserZones('default');
+    const userZones: UserZonesForFit = {};
+    for (const zoneSet of allZones) {
+      if (zoneSet.type === 'hr') userZones.hr = zoneSet.zones;
+      if (zoneSet.type === 'pace') userZones.pace = zoneSet.zones;
+      if (zoneSet.type === 'power') userZones.power = zoneSet.zones;
+    }
+
+    const fitBytes = generateFitWorkout(result.workout, userZones);
     const filename = generateFitFilename(result.workout);
 
     // Create a fresh ArrayBuffer copy to satisfy TypeScript strict typing
