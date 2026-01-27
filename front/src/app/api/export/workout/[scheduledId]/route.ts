@@ -9,7 +9,7 @@ type RouteContext = {
 export async function GET(_request: NextRequest, context: RouteContext) {
   const { scheduledId } = await context.params;
 
-  const result = getScheduledWorkoutById(scheduledId);
+  const result = await getScheduledWorkoutById(scheduledId);
 
   if (!result) {
     return NextResponse.json({ error: 'Scheduled workout not found' }, { status: 404 });

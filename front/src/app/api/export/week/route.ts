@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const workoutsToExport = getAllScheduledWorkoutsForWeek(startDate);
+  const workoutsToExport = await getAllScheduledWorkoutsForWeek(startDate);
 
   if (workoutsToExport.length === 0) {
     return NextResponse.json(
