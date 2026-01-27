@@ -11,6 +11,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@garmin/fitsdk": "^21.188.0",
     "@libsql/client": "^0.17.0",
     "jszip": "^3.10.1",
     "lucide-react": "^0.563.0",

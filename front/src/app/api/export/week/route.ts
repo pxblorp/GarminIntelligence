@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import JSZip from 'jszip';
-import { getAllScheduledWorkoutsForWeek } from '../../../../lib/storage';
-import { generateFitWorkout, generateFitFilename } from '../../../../lib/fit-generator';
+import { getAllScheduledWorkoutsForWeek, getAllUserZones } from '../../../../lib/storage';
+import { generateFitWorkout, generateFitFilename, type UserZonesForFit } from '../../../../lib/fit-generator';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -30,10 +30,19 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Fetch user zones for FIT file generation
+    const allZones = await getAllUserZones('default');
+    const userZones: UserZonesForFit = {};
+    for (const zoneSet of allZones) {
+      if (zoneSet.type === 'hr') userZones.hr = zoneSet.zones;
+      if (zoneSet.type === 'pace') userZones.pace = zoneSet.zones;
+      if (zoneSet.type === 'power') userZones.power = zoneSet.zones;
+    }
+
     const zip = new JSZip();
 
     for (const { workout } of workoutsToExport) {
-      const fitBytes = generateFitWorkout(workout);
+      const fitBytes = generateFitWorkout(workout, userZones);
       const filename = generateFitFilename(workout);
       zip.file(filename, fitBytes);
     }
