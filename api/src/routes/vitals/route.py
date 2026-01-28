@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends
 import os
+from fastapi import APIRouter, HTTPException, Depends
+
 from ...services.GarminManager import garmin_manager
 from .models import VitalsRequest, VitalsResponse, VitalResponse
 
