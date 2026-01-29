@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 
-from services.GarminManager import garmin_manager
+from api.services.GarminManager import garmin_manager
 from .models import SyncQueryParams, SyncResponse, ActivityResponse, VitalResponse
 
 router = APIRouter(prefix="/api", tags=["sync"])

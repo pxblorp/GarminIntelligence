@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 import os
-from services.GarminManager import garmin_manager
+from api.services.GarminManager import garmin_manager
 from .models import VitalsRequest, VitalsResponse, VitalResponse
 
 router = APIRouter(prefix="/api", tags=["vitals"])

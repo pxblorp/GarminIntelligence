@@ -5,13 +5,13 @@ from fastapi import FastAPI
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 
-from .services.GarminManager import garmin_manager
+from api.services.GarminManager import garmin_manager
 
-from .routes.sync import router as sync_router
-from .routes.vitals import router as vitals_router
-from .routes.health import router as health_router
-from .routes.workouts import router as workouts_router
-from .routes.activities import router as activities_router
+from api.routes.sync import router as sync_router
+from api.routes.vitals import router as vitals_router
+from api.routes.health import router as health_router
+from api.routes.workouts import router as workouts_router
+from api.routes.activities import router as activities_router
 
 load_dotenv()
 

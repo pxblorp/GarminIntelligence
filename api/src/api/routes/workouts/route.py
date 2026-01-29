@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 import os
-from services.GarminManager import garmin_manager
+
+from api.services.GarminManager import garmin_manager
 from .models import WorkoutQuery, WorkoutCreate, WorkoutResponse, WorkoutsResponse, WorkoutIdQuery
 
 router = APIRouter(prefix="/api", tags=["workouts"])

@@ -17,3 +17,12 @@ dependencies = [
 dev = [
     "ty>=0.0.13",
 ]
+
+[tool.uv]
+package = true
+
+[tool.uv.scripts]
+dev = "uvicorn api.main:app --reload --app-dir src"
+
+[tool.setuptools.packages.find]
+where = ["src"]
