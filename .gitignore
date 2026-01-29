@@ -5,6 +5,7 @@
 # API
 __pycache__/
 *.pyc
+*.egg_info
 
 
 # FRONT
