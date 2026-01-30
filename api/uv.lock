@@ -7,6 +7,15 @@ resolution-markers = [
 ]
 
 [[package]]
+name = "aiofiles"
+version = "25.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/41/c3/534eac40372d8ee36ef40df62ec129bee4fdb5ad9706e58a29be53b2c970/aiofiles-25.1.0.tar.gz", hash = "sha256:a8d728f0a29de45dc521f18f07297428d56992a742f0cd2701ba86e44d23d5b2", size = 46354, upload-time = "2025-10-09T20:51:04.358Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bc/8a/340a1555ae33d7354dbca4faa54948d76d89a27ceef032c8c3bc661d003e/aiofiles-25.1.0-py3-none-any.whl", hash = "sha256:abe311e527c862958650f9438e859c1fa7568a141b22abcd015e120e86a85695", size = 14668, upload-time = "2025-10-09T20:51:03.174Z" },
+]
+
+[[package]]
 name = "aiohappyeyeballs"
 version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -191,7 +200,7 @@ source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "garmin-fit-sdk" },
-    { name = "garminconnect" },
+    { name = "garmy" },
     { name = "libsql-client" },
     { name = "passlib" },
     { name = "pydantic" },
@@ -210,7 +219,7 @@ dev = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.104.1" },
     { name = "garmin-fit-sdk", specifier = ">=21.188.0" },
-    { name = "garminconnect", specifier = ">=0.2.38" },
+    { name = "garmy", specifier = ">=2.0.0" },
     { name = "libsql-client", specifier = ">=0.3.1" },
     { name = "passlib", specifier = ">=1.7.4" },
     { name = "pydantic", specifier = ">=2.0.0" },
@@ -485,29 +494,18 @@ wheels = [
 ]
 
 [[package]]
-name = "garminconnect"
-version = "0.2.38"
+name = "garmy"
+version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "garth" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/04/b5/c2d3c7fb53c98f74ef208b44b686e48f01cb6434d091f66593e29fd4d2ed/garminconnect-0.2.38.tar.gz", hash = "sha256:53f0d73e821dfa9e93731a6a1c81c34e689ce157c2751edd22dd462d4e4f9e04", size = 37502, upload-time = "2026-01-04T12:08:57.563Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/91/dc/9e0b1eee113fedfefd6577de45205e33505fcdc1520d4d28ee4c339e9862/garminconnect-0.2.38-py3-none-any.whl", hash = "sha256:801f64834d8d2ff41f10679e4111fc157312550980b0e29b0c2f263fd628a604", size = 32733, upload-time = "2026-01-04T12:08:55.45Z" },
-]
-
-[[package]]
-name = "garth"
-version = "0.5.21"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pydantic" },
+    { name = "aiofiles" },
+    { name = "aiohttp" },
     { name = "requests" },
     { name = "requests-oauthlib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/14/1a/e559feb5efd53e9a5d15c28007a714e240a51363c79a306727977fe1999b/garth-0.5.21.tar.gz", hash = "sha256:8d979595d1d4ea23a1b466ab4a60955d139b71f886f46490be140fcee584dab4", size = 1840358, upload-time = "2026-01-07T23:12:33.828Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/93/9c/72ee5ab3bdb383be570844f70df7722c7796553417022c9355b7bd52c624/garmy-2.0.0.tar.gz", hash = "sha256:47f382c4893324b7403bda345b544a773c378ed880c94f90fe703d96d604d19e", size = 197000, upload-time = "2025-06-30T15:23:47.227Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c5/14/b7c77f363ff04cc0c57991277b8c3564df5210b0879894e2033f90f55ff5/garth-0.5.21-py3-none-any.whl", hash = "sha256:24b8c517ef24ef030bca14cf4e8d7ad7a191d9bc60ece6077fec6ea743a5d039", size = 33265, upload-time = "2026-01-07T23:12:32.069Z" },
+    { url = "https://files.pythonhosted.org/packages/c3/62/2a8a50181c3c798a3d31520d684772c12e274271fa8b448ab19f2c4312d6/garmy-2.0.0-py3-none-any.whl", hash = "sha256:90fd2de3ee71f83201fe28c8e273976b3b1b0168da8f39abe3f3d162ac4c0cd2", size = 106615, upload-time = "2025-06-30T15:23:45.851Z" },
 ]
 
 [[package]]
