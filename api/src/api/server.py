@@ -16,9 +16,6 @@ from api.routes.workouts import router as workouts_router
 from api.routes.activities import router as activities_router
 
 
-GARMIN_EMAIL = os.getenv('GARMIN_EMAIL')
-GARMIN_PASSWORD = os.getenv('GARMIN_PASSWORD')
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield
