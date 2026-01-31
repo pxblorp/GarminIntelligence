@@ -1,16 +1,22 @@
 from pydantic import BaseModel
 from typing import Optional
 
-class VitalResponse(BaseModel):
+class VitalsVM(BaseModel):
     date: str
-    sleepScore: Optional[float]
-    sleepingHR: Optional[float]
-    hrv: Optional[float]
-    stress: Optional[float]
+    sleep_score: Optional[float] = None
+    sleeping_hr: Optional[float] = None
+    hrv: Optional[float] = None
+    stress: Optional[float] = None
+
+class VitalsCreate(BaseModel):
+    date: str
+    sleep_score: Optional[float] = None
+    sleeping_hr: Optional[float] = None
+    hrv: Optional[float] = None
+    stress: Optional[float] = None
 
 class VitalsRequest(BaseModel):
-    email: str
     date: str
 
 class VitalsResponse(BaseModel):
-    vitals: VitalResponse
+    vitals: list[VitalsVM]

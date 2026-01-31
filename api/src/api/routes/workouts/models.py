@@ -1,19 +1,8 @@
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import List, Dict, Any, Optional
 
-class WorkoutQuery(BaseModel):
-    email: str
-
-class WorkoutCreate(BaseModel):
-    email: str
-    sport: str = "other"
-    name: str = "Untitled Workout"
-    steps: List[Dict[str, Any]] = []
-    rpe: int = 5
-    notes: str = ""
-
-class WorkoutResponse(BaseModel):
-    id: str
+class WorkoutVM(BaseModel):
+    workout_id: str
     sport: str
     name: str
     steps: List[Dict[str, Any]]
@@ -22,29 +11,31 @@ class WorkoutResponse(BaseModel):
     estimatedLoad: float
     createdAt: str
 
+class WorkoutCreate(BaseModel):
+    sport: str = "other"
+    name: str = "Untitled Workout"
+    steps: List[Dict[str, Any]] = []
+    rpe: int = 5
+    notes: str = ""
+
+class WorkoutUpdate(BaseModel):
+    sport: Optional[str] = None
+    name: Optional[str] = None
+    steps: Optional[List[Dict[str, Any]]] = None
+    rpe: Optional[int] = None
+    notes: Optional[str] = None
+
 class WorkoutsResponse(BaseModel):
-    success: bool
-    workouts: List[WorkoutResponse]
+    workouts: List[WorkoutVM]
 
-class WorkoutIdQuery(BaseModel):
-    email: str
+class GetWorkoutByIdParams(BaseModel):
+    workout_id: str
 
-class CalendarQuery(BaseModel):
-    email: str
+class GetWorkoutsInDateRangeQueryParams(BaseModel):
     start_date: str
     end_date: str
 
-class CalendarResponse(BaseModel):
+class GetWorkoutsInDateRangeResponse(BaseModel):
     success: bool
-    calendar: Dict[str, List[Dict[str, Any]]]
     weeklyLoad: float
-
-class ExportWeekQuery(BaseModel):
-    email: str
-    start_date: str
-
-class ExportSingleQuery(BaseModel):
-    email: str
-
-class UnscheduleQuery(BaseModel):
-    email: str
+    calendar: Dict[str, List[Dict[str, Any]]]

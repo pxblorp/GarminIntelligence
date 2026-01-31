@@ -1,39 +1,48 @@
 from fastapi import APIRouter, HTTPException, Depends
 import os
 
-
-from api.services.GarminManager import garmin_manager
+from api.services.activity_service import activity_service
+from api.services.auth_service import auth_service
+from api.dependencies.auth import get_current_user
+from api.services.garmin_service import GarminService
 from .models import ActivityRequest, ActivitiesResponse
 
 router = APIRouter(prefix="/api", tags=["activities"])
 
-GARMIN_EMAIL = os.getenv('GARMIN_EMAIL') or ''
-GARMIN_PASSWORD = os.getenv('GARMIN_PASSWORD') or ''
-
 @router.get('/activities', response_model=ActivitiesResponse)
-def get_activities(req: ActivityRequest = Depends()) -> ActivitiesResponse:
+async def get_activities(
+    req: ActivityRequest = Depends(),
+    current_user: dict = Depends(get_current_user)
+) -> ActivitiesResponse:
     """Get activities for a date range"""
     try:
-        client = garmin_manager.get_client(GARMIN_EMAIL)
-        if not client:
-            raise HTTPException(status_code=401, detail="Garmin client not found. Please authenticate first.")
-
-
-        activities = client.get_activities_by_date(req.start_date, req.end_date)   
+        user_id = current_user["user_id"]
         
+        # First, try to get from DB
+        activities = await activity_service.get_activities(user_id, req.start_date, req.end_date)
+        
+        if not activities:
+            # If no activities in DB, sync from Garmin
+            user = await auth_service.get_user_by_id(user_id)
+            if not user or not user.get("oauth_token") or not user.get("oauth_token_secret"):
+                raise HTTPException(status_code=401, detail="Garmin credentials not found. Please re-authenticate.")
+            
+            garmin_service = GarminService()
+            client = garmin_service.resume_session(user["oauth_token"], user["oauth_token_secret"])
+            
+            synced_activities = await activity_service.sync_activities_from_garmin(user_id, req.start_date, req.end_date, client)
+            activities = synced_activities
+        
+        # Convert to the expected format
         processed_activities = []
         for activity in activities:
-            duration_minutes = activity.get('duration', 0) / 60
-            training_effect = activity.get('aerobicTrainingEffect', 3)
-            rpe = min(10, max(1, int(training_effect * 2)))
-            
             processed_activities.append({
-                'date': activity.get('startTimeLocal', '').split('T')[0],
-                'duration': duration_minutes,
-                'rpe': rpe,
-                'trainingLoad': activity.get('trainingLoad', 0) or training_effect * 30,
-                'tRPE': duration_minutes * rpe,
-                'activityType': activity.get('activityType', {}).get('typeKey', 'Unknown')
+                'date': activity.date,
+                'duration': activity.duration,
+                'rpe': activity.rpe,
+                'trainingLoad': activity.training_load,
+                'tRPE': activity.trpe,
+                'activityType': activity.activity_type
             })
         
         return ActivitiesResponse(activities=processed_activities)

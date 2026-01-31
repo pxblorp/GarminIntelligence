@@ -1,10 +1,23 @@
 import os
-from libsql_client import create_client
 from dotenv import load_dotenv
+from libsql_client import create_client
 
 load_dotenv()
 
-db_client = create_client(
-    url=os.getenv("DATABASE_URL") or "sqlite:///dev.db",
-    auth_token=os.getenv("DATABASE_AUTH_TOKEN")
-)
+class DatabaseClient:
+    def __init__(self):
+        url = os.getenv("DATABASE_URL")
+        auth_token = os.getenv("DATABASE_AUTH_TOKEN")
+
+        if url is None:
+            raise ValueError("DATABASE_URL not set in environment variables.")
+
+        self.client = create_client(
+            url=url,
+            auth_token=auth_token
+        )
+
+    async def execute(self, query: str, params: dict = {}):
+        return await self.client.execute(query, params)
+
+            

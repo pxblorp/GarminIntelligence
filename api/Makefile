@@ -1,2 +1,2 @@
 dev:
-	uv run uvicorn api.main:app --reload --app-dir src
+	uv run uvicorn api.server:app --reload --app-dir src

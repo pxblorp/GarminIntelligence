@@ -1,13 +1,10 @@
-from sqlalchemy import Table, Column, String, DateTime, MetaData
+from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
 
-metadata = MetaData()
-
-users = Table(
-    "users",
-    metadata,
-    Column("id", String, primary_key=True),
-    Column("email", String, unique=True, nullable=False),
-    Column("password_hash", String, nullable=False),
-    Column("created_at", DateTime),
-)
+class User(BaseModel):
+    user_id: int
+    email: str
+    created_at: Optional[datetime]
+    last_login_at: Optional[datetime]
 

@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
+from api.routes.auth import router as auth_router
 from api.routes.sync import router as sync_router
 from api.routes.vitals import router as vitals_router
 from api.routes.health import router as health_router
@@ -31,6 +32,7 @@ app.add_middleware(
     allow_credentials=True
 )
 
+app.include_router(auth_router)
 app.include_router(sync_router)
 app.include_router(health_router)
 app.include_router(vitals_router)
