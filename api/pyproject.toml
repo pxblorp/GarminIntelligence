@@ -8,17 +8,21 @@ dependencies = [
     "fastapi>=0.104.1",
     "uvicorn>=0.24.0",
     "python-dotenv>=1.2.1",
-    "pydantic>=2.0.0",
+    "pydantic[email]>=2.0.0",
     "garmin-fit-sdk>=21.188.0",
     "libsql-client>=0.3.1",
     "pyjwt>=2.0.0",
     "passlib>=1.7.4",
-    "garmy>=2.0.0",
+    "bcrypt>=4.0.1",
+    "garth>=0.6.3",
 ]
 
 [dependency-groups]
 dev = [
     "alembic>=1.18.3",
+    "httpx>=0.28.1",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=0.23.0",
     "ty>=0.0.13",
 ]
 
