@@ -1,9 +1,12 @@
+from alabaster import setup
 import os
 os.environ['TESTING'] = 'true'
 
 import pytest
 import libsql_client
 from unittest.mock import AsyncMock
+
+from .utils import load_all_fixtures, setup_db
 
 
 @pytest.fixture(scope="session")
@@ -53,19 +56,10 @@ def mock_db_client(setup_schema):
     mock_client.execute = mock_execute
     mock_client.close = AsyncMock()
     
-    # Patch the db_client in the db module
-    import db
-    db.db_client = mock_client
-    
     return mock_client
 
 @pytest.fixture
-async def test_fixtures(mock_db_client):
+async def test_fixtures(db_client):
     """Load all test fixtures"""
-    return await load_fixtures(mock_db_client)
-
-@pytest.fixture
-def client(mock_db_client):
-    from fastapi.testclient import TestClient
-    from api.server import app
-    return TestClient(app)
+    await setup_db(db_client)
+    return await load_all_fixtures(db_client)

@@ -1,19 +1,21 @@
 from typing import List, Optional
 
-from db import db_client
+from db import DatabaseClient
 from db.models.activities import Activity
 from api.routes.activities.models import ActivityCreate
 
 class ActivityService:
-    @staticmethod
-    async def get_activities(user_id: int, start_date: str, end_date: str) -> List[Activity]:
+    def __init__(self, db_client : DatabaseClient):
+        self.db_client = db_client
+
+    async def get_activities(self, user_id: int, start_date: str, end_date: str) -> List[Activity]:
         query = """
             SELECT activity_id, user_id, date, duration, rpe, training_load, trpe, activity_type, created_at, updated_at
             FROM activities
             WHERE user_id = ? AND date >= ? AND date <= ?
             ORDER BY date
         """
-        result = await db_client.execute(query, params={"user_id": user_id, "start_date": start_date, "end_date": end_date})
+        result = await self.db_client.execute(query, params={"user_id": user_id, "start_date": start_date, "end_date": end_date})
         activities = []
         for row in result.rows:
             activities.append(Activity(
@@ -30,13 +32,12 @@ class ActivityService:
             ))
         return activities
 
-    @staticmethod
-    async def create_activity(user_id: int, activity_data: ActivityCreate) -> Activity:
+    async def create_activity(self, user_id: int, activity_data: ActivityCreate) -> Activity:
         query = """
             INSERT INTO activities (user_id, date, duration, rpe, training_load, trpe, activity_type)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """
-        await db_client.execute(query, params={
+        await self.db_client.execute(query, params={
             "user_id": user_id,
             "date": activity_data.date,
             "duration": activity_data.duration,
@@ -48,7 +49,7 @@ class ActivityService:
         
         # Get the inserted activity
         select_query = "SELECT activity_id, user_id, date, duration, rpe, training_load, trpe, activity_type, created_at, updated_at FROM activities WHERE user_id = ? AND date = ? AND activity_type = ? ORDER BY activity_id DESC LIMIT 1"
-        result = await db_client.execute(select_query, params={"user_id": user_id, "date": activity_data.date, "activity_type": activity_data.activity_type})
+        result = await self.db_client.execute(select_query, params={"user_id": user_id, "date": activity_data.date, "activity_type": activity_data.activity_type})
         if not result.rows:
             raise Exception("Failed to create activity")
         row = result.rows[0]
@@ -65,9 +66,7 @@ class ActivityService:
             updated_at=row["updated_at"]
         )
 
-    @staticmethod
-    async def sync_activities_from_garmin(user_id: int, start_date: str, end_date: str, garmin_client) -> List[Activity]:
-        # Fetch from Garmin
+    async def sync_activities_from_garmin(self, user_id: int, start_date: str, end_date: str, garmin_client) -> List[Activity]:
         activities_data = garmin_client.get_activities_by_date(start_date, end_date)
         
         synced_activities = []
@@ -86,12 +85,10 @@ class ActivityService:
             )
             
             check_query = "SELECT activity_id FROM activities WHERE user_id = ? AND date = ? AND activity_type = ? AND ABS(duration - ?) < 0.1"
-            result = await db_client.execute(check_query, params={"user_id": user_id, "date": activity_create.date, "activity_type": activity_create.activity_type, "duration": activity_create.duration})
+            result = await self.db_client.execute(check_query, params={"user_id": user_id, "date": activity_create.date, "activity_type": activity_create.activity_type, "duration": activity_create.duration})
             
             if not result.rows:
-                synced_activity = await ActivityService.create_activity(user_id, activity_create)
+                synced_activity = await self.create_activity(user_id, activity_create)
                 synced_activities.append(synced_activity)
         
         return synced_activities
-
-activity_service = ActivityService()

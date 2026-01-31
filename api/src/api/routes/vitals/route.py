@@ -1,10 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 import os
 
-from api.services.vital_service import vital_service
-from api.services.auth_service import auth_service
+from api.services import VitalService, AuthService, GarminService
+from api.dependencies import get_vitals_service, get_auth_service, get_garmin_service
 from api.dependencies.auth import get_current_user
-from api.services.garmin_service import GarminService
 
 from .models import VitalsRequest, VitalsResponse, VitalsVM
 
@@ -13,6 +12,9 @@ router = APIRouter(prefix="/api", tags=["vitals"])
 @router.get('/vitals', response_model=VitalsResponse)
 async def get_vitals(
     req: VitalsRequest = Depends(),
+    vital_service: VitalService = Depends(get_vitals_service),
+    auth_service: AuthService = Depends(get_auth_service),
+    garmin_service: GarminService = Depends(get_garmin_service),
     current_user: dict = Depends(get_current_user)
 ) -> VitalsResponse:
     """Get vitals for a specific date"""
@@ -28,7 +30,6 @@ async def get_vitals(
             if not user or not user.get("oauth_token") or not user.get("oauth_token_secret"):
                 raise HTTPException(status_code=401, detail="Garmin credentials not found. Please re-authenticate.")
             
-            garmin_service = GarminService()
             client = garmin_service.resume_session(user["oauth_token"], user["oauth_token_secret"])
             
             vitals = await vital_service.sync_vitals_from_garmin(user_id, req.date, client)

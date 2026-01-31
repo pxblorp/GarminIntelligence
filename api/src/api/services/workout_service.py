@@ -1,19 +1,21 @@
 import json
+from db import DatabaseClient
 from typing import List, Optional
-from db import db_client
 from db.models.workouts import Workout, WorkoutStep
 from api.routes.workouts.models import WorkoutCreate, WorkoutUpdate
 
 class WorkoutService:
-    @staticmethod
-    async def get_workouts(user_id: int) -> List[Workout]:
+    def __init__(self, db_client : DatabaseClient):
+        self.db_client = db_client
+
+    async def get_workouts(self, user_id: int) -> List[Workout]:
         query = """
             SELECT workout_id, user_id, sport, name, steps, rpe, notes, estimated_load, created_at, updated_at
             FROM workouts
             WHERE user_id = ?
             ORDER BY created_at DESC
         """
-        result = await db_client.execute(query, params={"user_id": user_id})
+        result = await self.db_client.execute(query, params={"user_id": user_id})
         workouts = []
         for row in result.rows:
             steps = json.loads(row["steps"]) if row["steps"] else None
@@ -31,14 +33,13 @@ class WorkoutService:
             ))
         return workouts
 
-    @staticmethod
-    async def create_workout(user_id: int, workout_data: WorkoutCreate) -> Workout:
+    async def create_workout(self, user_id: int, workout_data: WorkoutCreate) -> Workout:
         steps_json = json.dumps(workout_data.steps) if workout_data.steps else None
         query = """
             INSERT INTO workouts (user_id, sport, name, steps, rpe, notes, estimated_load)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """
-        await db_client.execute(query, params={
+        await self.db_client.execute(query, params={
             "user_id": user_id,
             "sport": workout_data.sport,
             "name": workout_data.name,
@@ -48,9 +49,8 @@ class WorkoutService:
             "estimated_load": 0.0  # TODO: calculate estimated_load
         })
         
-        # Get the inserted workout
         select_query = "SELECT workout_id, user_id, sport, name, steps, rpe, notes, estimated_load, created_at, updated_at FROM workouts WHERE user_id = ? ORDER BY workout_id DESC LIMIT 1"
-        result = await db_client.execute(select_query, params={"user_id": user_id})
+        result = await self.db_client.execute(select_query, params={"user_id": user_id})
         if not result.rows:
             raise Exception("Failed to create workout")
         row = result.rows[0]
@@ -68,14 +68,13 @@ class WorkoutService:
             updated_at=row["updated_at"]
         )
 
-    @staticmethod
-    async def get_workout(user_id: int, workout_id: int) -> Optional[Workout]:
+    async def get_workout(self, user_id: int, workout_id: int) -> Optional[Workout]:
         query = """
             SELECT workout_id, user_id, sport, name, steps, rpe, notes, estimated_load, created_at, updated_at
             FROM workouts
             WHERE user_id = ? AND workout_id = ?
         """
-        result = await db_client.execute(query, params={"user_id": user_id, "workout_id": workout_id})
+        result = await self.db_client.execute(query, params={"user_id": user_id, "workout_id": workout_id})
         if not result.rows:
             return None
         row = result.rows[0]
@@ -92,5 +91,3 @@ class WorkoutService:
             created_at=row["created_at"],
             updated_at=row["updated_at"]
         )
-
-workout_service = WorkoutService()

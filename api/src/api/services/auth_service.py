@@ -4,17 +4,18 @@ import bcrypt
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 
-from db import db_client
+from db import DatabaseClient
 
 class AuthService:
-    def __init__(self):
+    def __init__(self, db_client: DatabaseClient):
+        self.db_client = db_client
         self.secret_key = os.getenv("SECRET_KEY")
         if not self.secret_key:
             raise RuntimeError("SECRET_KEY is required")
 
     async def signin(self, email: str, password: str) -> Optional[Dict[str, Any]]:
         query = "SELECT user_id, email, password_hash FROM users WHERE email = ?"
-        result = await db_client.execute(query, params={"email": email})
+        result = await self.db_client.execute(query, params={"email": email})
         if not result.rows:
             return None
 
@@ -25,7 +26,7 @@ class AuthService:
 
         # Update last login
         update_query = "UPDATE users SET last_login_at = ? WHERE user_id = ?"
-        await db_client.execute(update_query, params={"last_login_at": datetime.now(timezone.utc).isoformat(), "user_id": user["user_id"]})
+        await self.db_client.execute(update_query, params={"last_login_at": datetime.now(timezone.utc).isoformat(), "user_id": user["user_id"]})
 
         return {"user_id": user["user_id"], "email": user["email"]}
 
@@ -35,11 +36,11 @@ class AuthService:
             INSERT INTO users (email, password_hash)
             VALUES (?, ?)
         """
-        await db_client.execute(query, params={"email": email, "password_hash": password_hash.decode('utf-8')})
+        await self.db_client.execute(query, params={"email": email, "password_hash": password_hash.decode('utf-8')})
         
         # Get the inserted user
         select_query = "SELECT user_id, email FROM users WHERE email = ?"
-        result = await db_client.execute(select_query, params={"email": email})
+        result = await self.db_client.execute(select_query, params={"email": email})
         if not result.rows:
             return None
         user = result.rows[0]
@@ -63,9 +64,7 @@ class AuthService:
 
     async def get_user_by_id(self, user_id: int) -> Optional[Dict[str, Any]]:
         query = "SELECT user_id, email, oauth_token, oauth_token_secret FROM users WHERE user_id = ?"
-        result = await db_client.execute(query, params={"user_id": user_id})
+        result = await self.db_client.execute(query, params={"user_id": user_id})
         if not result.rows:
             return None
         return dict(result.rows[0])
-
-auth_service = AuthService()
