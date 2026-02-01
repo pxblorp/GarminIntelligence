@@ -1,70 +1,52 @@
-import jwt
-import os, asyncio
-import bcrypt
-from datetime import datetime, timedelta, timezone
-from typing import Optional, Dict, Any
+from datetime import datetime
+from passlib.context import CryptContext
 
-from db import DatabaseClient
+from db.client import DB
+from db.models import User
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class AuthService:
-    def __init__(self, db_client: DatabaseClient):
-        self.db_client = db_client
-        self.secret_key = os.getenv("SECRET_KEY")
-        if not self.secret_key:
-            raise RuntimeError("SECRET_KEY is required")
+    def __init__(self, db: DB):
+        self.db = db
 
-    async def signin(self, email: str, password: str) -> Optional[Dict[str, Any]]:
-        query = "SELECT user_id, email, password_hash FROM users WHERE email = ?"
-        result = await self.db_client.execute(query, params={"email": email})
+    async def signup(self, email: str, password: str) -> int:
+        hashed = pwd_context.hash(password)
+        query = "INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, ?) RETURNING user_id"
+        result = await self.db.execute(query, args=(email, hashed, datetime.now()))
+        if result.rows:
+             return result.rows[0][0]
+        return 0
+
+    async def get_user_by_id(self, user_id: int):
+        query = "SELECT * FROM users WHERE user_id = ?"
+        result = await self.db.execute(query, args=(user_id,))
         if not result.rows:
             return None
+        return result.rows[0]
 
-        user = result.rows[0]
-        is_valid = await self._verify_password(password, user["password_hash"])
-        if not is_valid:
+    async def login(self, email: str, password: str):
+        query = "SELECT * FROM users WHERE email = ?"
+        result = await self.db.execute(query, args=(email,))
+        if not result.rows:
             return None
-
-        # Update last login
-        update_query = "UPDATE users SET last_login_at = ? WHERE user_id = ?"
-        await self.db_client.execute(update_query, params={"last_login_at": datetime.now(timezone.utc).isoformat(), "user_id": user["user_id"]})
-
-        return {"user_id": user["user_id"], "email": user["email"]}
-
-    async def signup(self, email: str, password: str) -> Optional[Dict[str, Any]]:
-        password_hash = await self._hash_password(password)
-        query = """
-            INSERT INTO users (email, password_hash)
-            VALUES (?, ?)
-        """
-        await self.db_client.execute(query, params={"email": email, "password_hash": password_hash.decode('utf-8')})
+        user = result.rows[0]
         
-        # Get the inserted user
-        select_query = "SELECT user_id, email FROM users WHERE email = ?"
-        result = await self.db_client.execute(select_query, params={"email": email})
-        if not result.rows:
+        stored_hash = user['password_hash']
+        
+        if not stored_hash:
+             return None
+
+        if not pwd_context.verify(password, stored_hash):
             return None
-        user = result.rows[0]
-        return {"user_id": user["user_id"], "email": user["email"]}
 
-    async def _hash_password(self, password: str) -> bytes:
-        return await asyncio.to_thread(bcrypt.hashpw, password.encode('utf-8'), bcrypt.gensalt())
-
-    async def _verify_password(self, password: str, hashed: str) -> bool:
-        return await asyncio.to_thread(bcrypt.checkpw, password.encode('utf-8'), hashed.encode('utf-8'))
-
-    async def create_access_token(self, user_id: int, email: str, expires_minutes: int = 60) -> str:
-        now = datetime.now(timezone.utc)
-        payload = {
-            "sub": str(user_id),
-            "email": email,
-            "iat": now,
-            "exp": now + timedelta(minutes=expires_minutes),
-        }
-        return jwt.encode(payload, self.secret_key, algorithm="HS256")
-
-    async def get_user_by_id(self, user_id: int) -> Optional[Dict[str, Any]]:
-        query = "SELECT user_id, email, oauth_token, oauth_token_secret FROM users WHERE user_id = ?"
-        result = await self.db_client.execute(query, params={"user_id": user_id})
-        if not result.rows:
-            return None
-        return dict(result.rows[0])
+        # Update last login time
+        now = datetime.now()
+        update_query = "UPDATE users SET last_login_at = ? WHERE user_id = ?"
+        await self.db.execute(update_query, args=(now, user['user_id']))
+        
+        return User(
+            user_id=user['user_id'],
+            email=user['email'],
+            created_at=user['created_at'],
+            last_login_at=now,
+        )

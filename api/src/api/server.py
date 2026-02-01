@@ -10,10 +10,7 @@ load_dotenv()
 
 from api.routes.auth import router as auth_router
 from api.routes.sync import router as sync_router
-from api.routes.vitals import router as vitals_router
 from api.routes.health import router as health_router
-from api.routes.workouts import router as workouts_router
-from api.routes.activities import router as activities_router
 
 
 @asynccontextmanager
@@ -32,9 +29,6 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(sync_router)
 app.include_router(health_router)
-app.include_router(vitals_router)
-app.include_router(workouts_router)
-app.include_router(activities_router)
 
 if __name__ == '__main__':
     import uvicorn

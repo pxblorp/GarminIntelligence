@@ -1,11 +1,14 @@
 import pytest
-# from api.services.garmin_service import GarminService
+from unittest.mock import patch, MagicMock
+from api.services.garmin_service import GarminService, OAuth1Token, OAuth2Token
 
-@pytest.mark.skip(reason="Not implemented")
 class TestGarminService:
 
-    async def test_get_client(self):
+    @pytest.mark.skip(reason="Not implemented yet")
+    async def test_login(self, mock_client, mock_garth_login, garmin_service: GarminService):
         pass
 
-    async def test_resume_session(self):
+    @pytest.mark.skip(reason="Not implemented yet")
+    async def test_get_user_garmin_tokens(self, garmin_service: GarminService, test_fixtures):
+        """Test getting user's Garmin tokens from the database."""
         pass
