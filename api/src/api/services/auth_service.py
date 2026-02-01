@@ -1,20 +1,25 @@
-from datetime import datetime
-from passlib.context import CryptContext
+import os
+import jwt
+from api.utils.crypto import CryptoManager, crypto_manager
+from datetime import datetime, timedelta
 
 from db.client import DB
 from db.models import User
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 class AuthService:
-    def __init__(self, db: DB):
+    """Service for user authentication and JWT token management."""
+    
+    def __init__(self, db: DB, crypto_manager : CryptoManager):
         self.db = db
+        self.crypto_manager = crypto_manager
 
     async def signup(self, email: str, password: str) -> int:
-        hashed = pwd_context.hash(password)
+        hashed = self.crypto_manager.hash_password(password)
         query = "INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, ?) RETURNING user_id"
         result = await self.db.execute(query, args=(email, hashed, datetime.now()))
         if result.rows:
-             return result.rows[0][0]
+             return result.rows[0]['user_id']
         return 0
 
     async def get_user_by_id(self, user_id: int):
@@ -36,7 +41,7 @@ class AuthService:
         if not stored_hash:
              return None
 
-        if not pwd_context.verify(password, stored_hash):
+        if not self.crypto_manager.verify_password(password, stored_hash):
             return None
 
         # Update last login time
@@ -50,3 +55,27 @@ class AuthService:
             created_at=user['created_at'],
             last_login_at=now,
         )
+
+    async def create_access_token(self, user_id: int, email: str) -> str:
+        """
+        Create a JWT access token for the user.
+        
+        Args:
+            user_id: User ID to encode in token
+            email: User email to encode in token
+            
+        Returns:
+            JWT token string
+        """
+        secret_key = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
+        algorithm = "HS256"
+        expire = datetime.now() + timedelta(hours=24)
+        
+        payload = {
+            "user_id": user_id,
+            "email": email,
+            "exp": expire
+        }
+        
+        token = jwt.encode(payload, secret_key, algorithm=algorithm)
+        return token

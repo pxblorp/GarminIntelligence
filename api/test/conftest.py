@@ -1,65 +1,113 @@
-from alabaster import setup
 import os
-os.environ['TESTING'] = 'true'
-
+import sys
 import pytest
-import libsql_client
-from unittest.mock import AsyncMock
+import pytest_asyncio
+from unittest.mock import AsyncMock, MagicMock, patch
+from fastapi.testclient import TestClient
+from cryptography.fernet import Fernet
+from pathlib import Path
 
-from .utils import load_all_fixtures, setup_db
+from test_db import TestDB
+from api.server import app
+from api.utils.crypto import CryptoManager
+from api.dependencies import get_db
+from garth.auth_tokens import OAuth1Token, OAuth2Token
 
 
 @pytest.fixture(scope="session")
 def test_db():
-    """Create an in-memory SQLite database for testing"""
-    conn = libsql_client.create_client("file::memory:?cache=shared")
-    yield conn
-    conn.close()
+    """Create a test database instance"""
+    return TestDB(":memory:")
+
+
+@pytest_asyncio.fixture
+async def setup_test_db(test_db):
+    """Setup test database with schema"""
+    # Create users table
+    await test_db.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            last_login_at DATETIME
+        )
+    """)
+    
+    # Create oauth_tokens table
+    await test_db.execute("""
+        CREATE TABLE IF NOT EXISTS oauth_tokens (
+            user_id INTEGER PRIMARY KEY,
+            oauth1_token TEXT,
+            oauth1_token_secret TEXT,
+            oauth2_access_token TEXT,
+            oauth2_refresh_token TEXT,
+            oauth2_expires_in INTEGER,
+            oauth2_expires_at INTEGER,
+            oauth2_refresh_token_expires_in INTEGER,
+            oauth2_refresh_token_expires_at INTEGER,
+            oauth2_token_type TEXT,
+            oauth2_scope TEXT,
+            oauth2_jti TEXT,
+            oauth1_mfa_token TEXT,
+            oauth1_mfa_expiration_timestamp DATETIME,
+            oauth1_domain TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(user_id)
+        )
+    """)
+    
+    yield test_db
+    
+    await test_db.close()
 
 
 @pytest.fixture
-def mock_db_client(setup_schema):
-    """Mock the database client to use our test database"""
-    from unittest.mock import AsyncMock
-    
-    class MockResult:
-        def __init__(self, rows):
-            self.rows = rows
-    
-    async def mock_execute(query, params=None):
-        cursor = setup_schema.cursor()
-        try:
-            # Handle parameter conversion for sqlite3
-            if params:
-                # Convert named parameters to positional for sqlite3
-                param_values = []
-                for key, value in params.items():
-                    # Replace :key with ? in query
-                    query = query.replace(f":{key}", "?")
-                    param_values.append(value)
-                
-                cursor.execute(query, param_values)
-            else:
-                cursor.execute(query)
-            
-            if query.strip().upper().startswith(('INSERT', 'UPDATE', 'DELETE')):
-                setup_schema.commit()
-                return MockResult([])
-            else:
-                rows = cursor.fetchall()
-                return MockResult([dict(row) for row in rows])
-        except Exception as e:
-            setup_schema.rollback()
-            raise e
-    
-    mock_client = AsyncMock()
-    mock_client.execute = mock_execute
-    mock_client.close = AsyncMock()
-    
-    return mock_client
+def test_client(setup_test_db, test_db):
+    """Create a test client with overridden dependencies"""
+    app.dependency_overrides[get_db] = lambda: test_db
+    client = TestClient(app)
+    yield client
+    app.dependency_overrides.clear()
+
 
 @pytest.fixture
-async def test_fixtures(db_client):
-    """Load all test fixtures"""
-    await setup_db(db_client)
-    return await load_all_fixtures(db_client)
+def mock_oauth1_token():
+    """Create mock OAuth1 token"""
+    return OAuth1Token(
+        oauth_token="test_oauth1_token_12345",
+        oauth_token_secret="test_oauth1_secret_67890",
+        mfa_token=None,
+        mfa_expiration_timestamp=None,
+        domain="garmin.com"
+    )
+
+
+@pytest.fixture
+def mock_oauth2_token():
+    """Create mock OAuth2 token"""
+    return OAuth2Token(
+        scope="GARMINPAY_WRITE ATP_READ",
+        jti="test-jti-12345",
+        token_type="bearer",
+        access_token="test_access_token_abcdef",
+        refresh_token="test_refresh_token_ghijkl",
+        expires_in=3600,
+        expires_at=9999999999,  # Far future
+        refresh_token_expires_in=2592000,
+        refresh_token_expires_at=9999999999
+    )
+
+
+@pytest.fixture
+def test_user_data():
+    """Test user credentials"""
+    return {
+        "email": "test@example.com",
+        "password": "TestPassword123!"
+    }
+
+
+
